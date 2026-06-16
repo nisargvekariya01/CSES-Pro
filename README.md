@@ -26,16 +26,6 @@ src/
 │   ├── submitEditor.ts     # Enhances the CSES submission page with code pasting
 │   └── copyBlocks.ts       # Codeforces-style copy buttons for CSES code blocks
 │
-├── popup/
-│   ├── index.tsx           # React root
-│   ├── index.css           # Tailwind + custom dark-mode styles
-│   ├── App.tsx             # State management + authentication guard
-│   ├── Dashboard.tsx       # Main layout with tabs (Overview / Topics / Bookmarks)
-│   ├── PieChart.tsx        # Recharts donut chart (Solved vs Unsolved)
-│   ├── Heatmap.tsx         # react-calendar-heatmap (365 days)
-│   ├── TopicProgress.tsx   # Per-category progress bars
-│   └── MarkedProblems.tsx  # Bookmarked problems grouped by category
-│
 ├── services/
 │   ├── storage.ts          # Storage operations (handles multi-account data isolation)
 │   └── parser.ts           # DOM parsing helpers for content scripts
@@ -45,9 +35,6 @@ src/
 │
 ├── background/
 │   └── sync.ts             # Message hub service worker
-│
-└── types/
-    └── react-calendar-heatmap.d.ts  # Type declarations
 ```
 
 ---
@@ -64,26 +51,15 @@ src/
 - Visit individual task pages → incremental detection of new solves
 - Percentages always displayed with 1 decimal place (e.g. `40.9%`)
 
-### 🗂️ Popup Dashboard (3 Tabs)
-**Overview Tab:**
-- Stats: Solved / Total / Completion % / Bookmarks
-- Current Streak + Best Streak with 🔥 and 🏆 icons
-- Recharts donut pie chart (green = solved, grey = unsolved)
-- GitHub-style activity heatmap for the last 365 days
-
-**Topics Tab:**
-- All CSES categories in official order
-- Color-coded per-category progress bars
-
-**Bookmarks Tab:**
-- Bookmarked problems grouped by official category
-- External links to problems and quick-remove buttons
-
 ### 💉 In-Page DOM Injections
+- **In-Page Dashboard:** A beautiful dropdown summary injected straight into the CSES problemset list page.
+  - Stats: Solved / Total / Completion %
+  - Current Streak + Best Streak with 🔥 and 🏆 icons
+  - Donut pie chart (green = solved, grey = unsolved)
+  - Color-coded per-category progress bars
 - **Code Paster:** Replaces the clunky file upload on `cses.fi/submit` with a smooth code pasting text area.
 - **Copy Blocks:** Codeforces-style "Copy" buttons injected above every Input/Output block.
 - **Bookmark Button:** Appears on every `cses.fi/problemset/task/*` page.
-- **In-Page Dashboard:** A beautiful dropdown summary injected straight into the CSES problemset list page.
 
 ---
 
