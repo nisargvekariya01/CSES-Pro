@@ -53,7 +53,7 @@ Because we believe this tool should be completely free for student developers, i
 
 #### 🔄 Comparison
 
-|       Before (Shared / Mixed Storage)        | After (Isolated Profiles & Auto-detection)  |
+|             Before (Logged Out)              | After (Isolated Profiles & Auto-detection)  |
 | :------------------------------------------: | :-----------------------------------------: |
 | ![Logged Out or Mixed State](images/1_b.png) | ![Isolated Profile Mounted](images/1_a.png) |
 
