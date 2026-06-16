@@ -1,0 +1,1 @@
+import{b as t}from"./parser-CDGgk22_.js";import{h as r,s as a}from"./storage-39e_FlVG.js";async function n(){const e=t(document);if(!e)return;if(await r()!==e){await a(e);try{chrome.runtime.sendMessage({type:"SET_USERNAME",payload:{username:e}})}catch{}}}function m(){n()}export{m as onExecute};

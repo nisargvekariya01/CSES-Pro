@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "CSES Pro",
+  "version": "1.0.0",
+  "description": "Enhance your CSES experience with progress tracking, Codeforces-style features, advanced sorting, and more.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "public/icons/icon16.png",
+      "48": "public/icons/icon48.png",
+      "128": "public/icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/background/sync.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://cses.fi/*"],
+      "js": [
+        "src/content/username.ts",
+        "src/content/solvedProblems.ts",
+        "src/content/bookmarks.ts",
+        "src/content/injectDashboard.ts",
+        "src/content/submitEditor.ts",
+        "src/content/copyBlocks.ts"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage", "tabs", "activeTab", "scripting"],
+  "host_permissions": ["*://cses.fi/*"],
+  "icons": {
+    "16": "public/icons/icon16.png",
+    "48": "public/icons/icon48.png",
+    "128": "public/icons/icon128.png"
+  }
+}

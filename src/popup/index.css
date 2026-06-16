@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base Reset ───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 440px;
+  min-height: 200px;
+  max-height: 600px;
+  overflow-x: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0f172a;
+  color: #f1f5f9;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 440px;
+  min-height: 200px;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+#root::-webkit-scrollbar {
+  width: 4px;
+}
+#root::-webkit-scrollbar-track {
+  background: transparent;
+}
+#root::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
+}
+
+/* ── react-calendar-heatmap overrides ────────────────────────────────────── */
+.react-calendar-heatmap text {
+  font-size: 6px;
+  fill: #64748b;
+  font-family: 'Inter', sans-serif;
+}
+
+.react-calendar-heatmap rect:hover {
+  stroke: #22c55e;
+  stroke-width: 1px;
+}
+
+.color-empty {
+  fill: #1e293b;
+}
+
+.color-scale-1 {
+  fill: #14532d;
+}
+
+.color-scale-2 {
+  fill: #166534;
+}
+
+.color-scale-3 {
+  fill: #15803d;
+}
+
+.color-scale-4 {
+  fill: #22c55e;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* ── Tooltip ──────────────────────────────────────────────────────────────── */
+.heatmap-tooltip {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px !important;
+  color: #f1f5f9 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+  z-index: 9999 !important;
+}
+
+/* ── Progress bar ─────────────────────────────────────────────────────────── */
+.progress-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: #1e293b;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #16a34a, #22c55e, #4ade80);
+}
+
+/* ── Glass card ───────────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  border-radius: 12px;
+}
+
+/* ── Stat badge ───────────────────────────────────────────────────────────── */
+.stat-badge {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #22c55e;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}
+
+/* ── Section divider ──────────────────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #334155, transparent);
+}
+
+/* ── Recharts customization ───────────────────────────────────────────────── */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-default-tooltip {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px !important;
+}
