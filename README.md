@@ -46,33 +46,67 @@ Because we believe this tool should be completely free for student developers, i
 * **Auto-Detection:** The extension reads the logged-in user directly from the CSES header navigation bar.
 * **Privacy First:** When logged out, the extension securely unmounts the dashboard, pauses tracking, and protects your database profiles.
 
+#### 🔄 Before vs. After
+* **Before:** CSES lacks personal client-side progress saving. If you implement local storage without account isolation, switching accounts on the same computer merges or overwrites progress history.
+* **After:** The extension partitions local storage keys by active username prefix (e.g. `NISARG_07_solvedProblems`). Logging in as user A loads user A's dashboard and bookmarks, while switching to user B loads user B's profile. Logging out completely hides and unloads all dashboard components.
+
+---
+
 ### 📊 2. Dynamic In-Page Progress Dashboard
 The extension injects a premium dashboard directly at the top of the CSES Problemset pages (`/problemset` and `/problemset/list`) as well as on your public user profile page (`/user/USERNAME`).
 * **Collapsible summary panel:** Styled with modern glassmorphism, backdrop filters, and hover transitions that blend natively with both CSES light and dark themes.
 * **Interactive SVG Donut Pie Chart:** A smooth visualization showing your Solved vs Unsolved problem ratios.
 * **Overall Progress stats:** Real-time problem counts (Solved / Total) and progress percentage calculated to exactly 1 decimal place.
 * **Streak Tracking:** Displays your current daily solve streak (🔥) and your all-time best streak (🏆) using date calculation.
-* **Category Progress Matrix:** A detailed table listing all CSES categories (Introductory Problems, Dynamic Programming, Graph Algorithms, etc.) with custom-styled colored progress bars indicating completion percentage.
+* **Category Progress Matrix:** A detailed table listing all CSES categories with custom progress bars indicating completion percentage.
+
+#### 🔄 Before vs. After
+* **Before:** CSES lists hundreds of tasks linearly, only placing a small green indicator next to solved problems. There is no cumulative tracking, category breakdown, or visualization of your performance.
+* **After:** A professional, collapsable dashboard is injected. You get a donut chart of your overall completion rate, active streak counts (current/best), and colored progress bars for each individual category (e.g., green for 100% complete, blue for in-progress, slate for unstarted).
+
+---
 
 ### 🔍 3. Advanced Filtering & Sorting Controls
 Injected right below the dashboard, these interactive toggles give you powerful control over the massive CSES problem list:
 * **Show Only Marked Problems:** A checkbox filter that instantly narrows down the task lists to show only your bookmarked/starred problems. It automatically collapses and hides empty categories and category headers to clean up your view.
 * **Sort by Most Solved:** A checkbox filter that re-orders the problems within each category in descending order of their total solve count (popularity). Unchecking it instantly restores the original CSES ordering.
-* **🎲 Random Problem Selector:** Injects a button that redirects you to a random task. If you have "Show only marked problems" active, it intelligently picks a random problem from your bookmarks; otherwise, it redirects to a random problem from the entire problem set.
+* **🎲 Random Problem Selector:** Injects a button that redirects you to a random task. If you have "Show only marked problems" active, it intelligently selects from your bookmarked tasks; otherwise, it redirects to any random problem from the entire set.
+
+#### 🔄 Before vs. After
+* **Before:** You must scroll through all 300+ problems in their fixed default order. There is no way to isolate specific topics, sort tasks by how common/popular they are, or easily get a random challenge.
+* **After:** You can filter the list to focus only on your bookmarked tasks (hiding irrelevant category headers). You can sort problems in each section by their solve counts to solve the most popular ones first, or click "🎲 Random Problem" to jump straight into a task (matching your filters).
+
+---
 
 ### 📝 4. Codeforces-Style Code Paste Submit Editor
 * Replaces the native, restrictive file upload input on the `cses.fi/submit` page with a clean Codeforces-style code paste editor text area.
 * Includes a toggle switch ("Paste code" / "Upload file") so you can switch back to standard file uploads at any time.
 * **Auto Language Extension:** Detects your selected language (C++, Python, Java, Rust, etc.) in the dropdown, automatically names the virtual file (e.g., `solution.cpp`, `solution.py`), and handles the multi-part form submission transparently behind the scenes.
 
+#### 🔄 Before vs. After
+* **Before:** To submit a solution, you are forced to save your code inside a file on your computer, open a file browser, select the file, select the programming language dropdown, and then click submit.
+* **After:** You can paste your code directly into a textarea on the page. The extension reads the selected language dropdown, constructs a virtual file with the correct extension, and submits it in the background instantly.
+
+---
+
 ### 📋 5. Codeforces-Style Copy Boxes
 * Automatically transforms all standard input, output, and code block panels on problem task pages into structured, styled boxes.
 * Injects a **"Copy"** button on the title header of each box. Clicking it instantly copies the contents to your clipboard with a 2-second visual confirmation ("Copied!").
 * Integrates original page text (e.g., "Input" / "Output" paragraph labels) directly into the box headers for a clean, compact layout.
 
+#### 🔄 Before vs. After
+* **Before:** Text input/output panels are plain preformatted blocks. You must highlight the content manually, often accidentally copying trailing whitespaces, headers, or line numbers.
+* **After:** Panels are enclosed in boxed containers with a dedicated header. You simply click the blue "Copy" button in the corner to copy clean, formatted content instantly.
+
+---
+
 ### ⭐ 6. Problem Bookmark Button
 * Injects an elegant star bookmark icon (⭐) directly next to the problem title on all `cses.fi/problemset/task/*` pages.
 * Bookmarking a problem highlights its row on the main problem list in a subtle gold accent, making it easy to spot and filter.
+
+#### 🔄 Before vs. After
+* **Before:** CSES offers no custom list or marking mechanism. You must keep browser bookmarks or external spreadsheets to track problems you want to revisit.
+* **After:** A star button is injected next to problem titles. Clicking it adds it to your CSES Pro bookmarks database, highlighting the problem row in gold on the main list for easy tracking and filtering.
 
 ---
 
