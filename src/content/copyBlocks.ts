@@ -16,49 +16,39 @@ function run() {
   const style = document.createElement('style');
   style.textContent = `
     .cses-cf-box {
-      border: 1px solid #ccc;
+      border: 1px solid rgba(128, 128, 128, 0.3);
       border-radius: 4px;
       margin-bottom: 1em;
       overflow: hidden;
-      background-color: var(--bg-color, #fff);
-    }
-    html.dark .cses-cf-box, body.dark .cses-cf-box {
-      border-color: #475569;
-      background-color: #1e293b;
+      background-color: rgba(128, 128, 128, 0.05);
+      color: inherit;
     }
     .cses-cf-title {
-      background-color: #f3f4f6;
-      border-bottom: 1px solid #ccc;
+      background-color: rgba(128, 128, 128, 0.15);
+      border-bottom: 1px solid rgba(128, 128, 128, 0.3);
       padding: 4px 12px;
       font-family: sans-serif;
       font-size: 13px;
       font-weight: bold;
-      color: #333;
+      color: inherit;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    html.dark .cses-cf-title, body.dark .cses-cf-title {
-      background-color: #334155;
-      border-bottom-color: #475569;
-      color: #e2e8f0;
-    }
     .cses-cf-copy {
       cursor: pointer;
-      color: #2563eb;
+      color: #3b82f6; /* Blue that works well in both light and dark modes */
       font-weight: normal;
     }
     .cses-cf-copy:hover {
       text-decoration: underline;
-    }
-    html.dark .cses-cf-copy, body.dark .cses-cf-copy {
-      color: #60a5fa;
     }
     .cses-cf-box pre {
       margin: 0 !important;
       padding: 12px !important;
       border: none !important;
       background: transparent !important;
+      color: inherit !important;
     }
   `;
   document.head.appendChild(style);

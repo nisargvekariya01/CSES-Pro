@@ -2,9 +2,12 @@
 // @crxjs requires content scripts to export an `onExecute` function.
 
 import { extractProblemIdFromUrl } from '../services/parser';
-import { getBookmarks, toggleBookmark } from '../services/storage';
+import { getBookmarks, toggleBookmark, getUsername } from '../services/storage';
 
 async function run() {
+  const username = await getUsername();
+  if (!username) return;
+
   const url = window.location.href;
   if (!url.includes('/problemset/task/')) return;
 

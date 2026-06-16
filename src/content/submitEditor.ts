@@ -11,6 +11,58 @@ function run() {
   const codeDiv = fileInput.parentElement;
   if (!codeDiv) return;
 
+  // Dynamically set class to fix native dropdown options
+  const updateColorScheme = () => {
+    const darkSheet = document.getElementById('styles-dark') as HTMLLinkElement | null;
+    const isDark = darkSheet && darkSheet.rel === 'stylesheet';
+    if (isDark) {
+      document.body.classList.add('cses-is-dark');
+    } else {
+      document.body.classList.remove('cses-is-dark');
+    }
+  };
+  updateColorScheme();
+
+  const observer = new MutationObserver(updateColorScheme);
+  observer.observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['rel', 'disabled'] });
+
+  // Inject adaptive styles for native form controls
+  const style = document.createElement('style');
+  style.textContent = `
+    select[name="lang"], 
+    input[type="file"]::file-selector-button, 
+    input[type="submit"] {
+      background-color: rgba(128, 128, 128, 0.08) !important;
+      color: inherit !important;
+      border: 1px solid rgba(128, 128, 128, 0.3) !important;
+      padding: 6px 12px !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      font-family: inherit !important;
+      outline: none !important;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    select[name="lang"]:hover, 
+    input[type="file"]::file-selector-button:hover, 
+    input[type="submit"]:hover {
+      background-color: rgba(128, 128, 128, 0.15) !important;
+    }
+    select[name="lang"]:active, 
+    input[type="file"]::file-selector-button:active, 
+    input[type="submit"]:active {
+      transform: scale(0.97);
+    }
+    body.cses-is-dark select[name="lang"] option {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
+    body:not(.cses-is-dark) select[name="lang"] option {
+      background-color: #ffffff;
+      color: #222222;
+    }
+  `;
+  document.head.appendChild(style);
+
   const toggleWrapper = document.createElement('div');
   toggleWrapper.style.display = 'flex';
   toggleWrapper.style.gap = '16px';
@@ -62,11 +114,11 @@ function run() {
   textarea.style.fontFamily = 'monospace';
   textarea.style.fontSize = '14px';
   textarea.style.padding = '12px';
-  textarea.style.border = '1px solid #ccc';
+  textarea.style.border = '1px solid rgba(128, 128, 128, 0.3)';
   textarea.style.borderRadius = '4px';
   textarea.style.resize = 'vertical';
-  textarea.style.backgroundColor = document.body.classList.contains('dark') ? '#1e293b' : '#fafafa';
-  textarea.style.color = document.body.classList.contains('dark') ? '#e2e8f0' : '#222';
+  textarea.style.backgroundColor = 'rgba(128, 128, 128, 0.05)';
+  textarea.style.color = 'inherit';
 
   const textareaWrapper = document.createElement('div');
   textareaWrapper.style.marginTop = '16px';

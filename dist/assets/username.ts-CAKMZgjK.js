@@ -1,0 +1,1 @@
+import{b as t}from"./parser-CT_qkLUG.js";import{g as r,c as a}from"./storage-DPB6uFbM.js";async function n(){const e=t(document);if(e===void 0)return;if(await r()!==e){await a(e);try{chrome.runtime.sendMessage({type:"SET_USERNAME",payload:{username:e}})}catch{}}}function m(){n()}export{m as onExecute};

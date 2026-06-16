@@ -24,7 +24,10 @@
  * When logged in: <a class="account" href="/user/USERNAME">USERNAME</a>
  * When logged out: <a class="account" href="/login">Login</a>
  */
-export function extractUsername(doc: Document): string | null {
+export function extractUsername(doc: Document): string | null | undefined {
+  const header = doc.querySelector('.header');
+  if (!header) return undefined; // Unknown state, no header present
+
   // Primary: .account link that does NOT point to /login
   const accountLink = doc.querySelector<HTMLAnchorElement>('a.account');
   if (accountLink) {
@@ -49,7 +52,13 @@ export function extractUsername(doc: Document): string | null {
     if (match?.[1]) return decodeURIComponent(match[1]);
   }
 
-  return null;
+  // Explicit check for logged out state
+  const loginLink = doc.querySelector<HTMLAnchorElement>('a[href="/login"]');
+  if (loginLink || (accountLink && accountLink.textContent?.trim().toLowerCase() === 'login')) {
+    return null; // Definitely logged out
+  }
+
+  return undefined; // Still unknown
 }
 
 /**

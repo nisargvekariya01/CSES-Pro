@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getUserStats, UserStats, setUsername, setSolvedProblems, setLastUpdated, getHeatmapData, setHeatmapData } from '../services/storage';
-import { scanActiveTab } from '../services/scanner';
 import { extractUsername, extractSolvedProblems } from '../services/parser';
 import Dashboard from './Dashboard';
+import { LogIn } from 'lucide-react';
 
 // ─── Streak Calculator ────────────────────────────────────────────────────────
 
@@ -148,6 +148,29 @@ const App: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-48 bg-[#0f172a]">
         <p className="text-slate-500 text-sm">Failed to load data</p>
+      </div>
+    );
+  }
+
+  if (!stats.username) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[400px] bg-[#0f172a] p-6 text-center animate-fade-in">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-900/50 mb-6">
+          <LogIn size={32} className="text-white ml-1" />
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">Welcome to CSES Pro</h2>
+        <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+          Please log in to CSES to view your dashboard, track your progress, and see your stats.
+        </p>
+        <a 
+          href="https://cses.fi/login" 
+          target="_blank" 
+          rel="noreferrer" 
+          className="px-6 py-3 w-full bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-all shadow-md hover:shadow-brand-500/20 font-semibold flex justify-center items-center gap-2"
+        >
+          <LogIn size={16} />
+          Log in to CSES
+        </a>
       </div>
     );
   }

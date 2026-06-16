@@ -6,7 +6,7 @@ import { getUsername, setUsername } from '../services/storage';
 
 async function run() {
   const detected = extractUsername(document);
-  if (!detected) return;
+  if (detected === undefined) return;
 
   const stored = await getUsername();
   if (stored !== detected) {

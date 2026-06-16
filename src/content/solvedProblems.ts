@@ -13,9 +13,14 @@ import {
   getHeatmapData,
   setHeatmapData,
   getBookmarks,
+  getUsername,
 } from '../services/storage';
+import csesProblems from '../data/cses-problems.json';
 
 async function run() {
+  const username = await getUsername();
+  if (!username) return;
+
   const url = window.location.href;
   const today = getTodayDateString();
 
@@ -93,9 +98,8 @@ async function run() {
       filterWrapper.style.display = 'flex';
       filterWrapper.style.alignItems = 'center';
       filterWrapper.style.gap = '8px';
-      
-      const dark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
-      filterWrapper.style.color = dark ? '#e2e8f0' : '#222';
+      // Automatically inherit the text color based on the current body theme
+      filterWrapper.style.color = 'inherit';
       
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -142,11 +146,54 @@ async function run() {
       if (content) {
          // Insert before the Introductory Problems header (or the second h2)
          const introHeader = Array.from(content.querySelectorAll('h2')).find(h => h.textContent?.includes('Introductory Problems'));
+         
+         // Create Random Button Wrapper
+         const randomWrapper = document.createElement('div');
+         randomWrapper.style.marginBottom = '24px';
+         const randomBtn = document.createElement('button');
+         randomBtn.textContent = '🎲 Random Problem';
+         randomBtn.style.background = '#2563eb';
+         randomBtn.style.color = '#ffffff';
+         randomBtn.style.border = 'none';
+         randomBtn.style.padding = '8px 16px';
+         randomBtn.style.borderRadius = '6px';
+         randomBtn.style.fontSize = '14px';
+         randomBtn.style.fontWeight = '600';
+         randomBtn.style.cursor = 'pointer';
+         randomBtn.style.transition = 'background 0.2s';
+         randomBtn.onmouseover = () => randomBtn.style.background = '#1d4ed8';
+         randomBtn.onmouseout = () => randomBtn.style.background = '#2563eb';
+         
+         randomBtn.addEventListener('click', () => {
+            const filterCheckbox = document.getElementById('cses-filter-bookmarks') as HTMLInputElement;
+            if (filterCheckbox && filterCheckbox.checked) {
+               const markedLinks = Array.from(document.querySelectorAll('li.task.cses-bookmarked a[href*="/task/"]')) as HTMLAnchorElement[];
+               if (markedLinks.length > 0) {
+                  const randomLink = markedLinks[Math.floor(Math.random() * markedLinks.length)];
+                  window.location.href = randomLink.href;
+               } else {
+                  alert("No marked problems found!");
+               }
+            } else {
+               const ids = Object.keys(csesProblems);
+               if (ids.length > 0) {
+                  const randomId = ids[Math.floor(Math.random() * ids.length)];
+                  window.location.href = `/problemset/task/${randomId}`;
+               }
+            }
+         });
+         
+         randomWrapper.appendChild(randomBtn);
+
          if (introHeader) {
             content.insertBefore(filterWrapper, introHeader);
+            content.insertBefore(randomWrapper, introHeader);
          } else {
             const h2s = content.querySelectorAll('h2');
-            if (h2s.length > 1) content.insertBefore(filterWrapper, h2s[1]);
+            if (h2s.length > 1) {
+               content.insertBefore(filterWrapper, h2s[1]);
+               content.insertBefore(randomWrapper, h2s[1]);
+            }
          }
       }
 

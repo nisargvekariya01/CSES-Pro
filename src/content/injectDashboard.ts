@@ -1,58 +1,66 @@
 // Content script: Inject a "Dashboard" tab into the CSES navigation bar.
 // Shows: pie chart + 365-day Codeforces-style heatmap + category table.
 
-import csesProblems from '../data/cses-problems.json';
-import { getUserStats } from '../services/storage';
+import csesProblems from "../data/cses-problems.json";
+import { getUserStats } from "../services/storage";
 
 // ─── Category order ───────────────────────────────────────────────────────────
 
 const CATEGORY_ORDER = [
-  'Introductory Problems',
-  'Sorting and Searching',
-  'Dynamic Programming',
-  'Graph Algorithms',
-  'Range Queries',
-  'Tree Algorithms',
-  'Mathematics',
-  'String Algorithms',
-  'Geometry',
-  'Advanced Techniques',
-  'Sliding Window Problems',
-  'Interactive Problems',
-  'Bitwise Operations',
-  'Construction Problems',
-  'Advanced Graph Problems',
-  'Counting Problems',
-  'Additional Problems I',
-  'Additional Problems II',
+  "Introductory Problems",
+  "Sorting and Searching",
+  "Dynamic Programming",
+  "Graph Algorithms",
+  "Range Queries",
+  "Tree Algorithms",
+  "Mathematics",
+  "String Algorithms",
+  "Geometry",
+  "Advanced Techniques",
+  "Sliding Window Problems",
+  "Interactive Problems",
+  "Bitwise Operations",
+  "Construction Problems",
+  "Advanced Graph Problems",
+  "Counting Problems",
+  "Additional Problems I",
+  "Additional Problems II",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function getCategoryStats(solvedProblems: Record<string, boolean>) {
-  const problems = csesProblems as Record<string, { title: string; category: string }>;
+  const problems = csesProblems as Record<
+    string,
+    { title: string; category: string }
+  >;
   const catMap: Record<string, string[]> = {};
   for (const [id, meta] of Object.entries(problems)) {
     if (!catMap[meta.category]) catMap[meta.category] = [];
     catMap[meta.category].push(id);
   }
-  return CATEGORY_ORDER
-    .filter((c) => catMap[c]?.length)
-    .map((c) => {
-      const ids = catMap[c]!;
-      const solved = ids.filter((id) => solvedProblems[id]).length;
-      return { name: c, solved, total: ids.length, pct: ids.length ? (solved / ids.length) * 100 : 0 };
-    });
+  return CATEGORY_ORDER.filter((c) => catMap[c]?.length).map((c) => {
+    const ids = catMap[c]!;
+    const solved = ids.filter((id) => solvedProblems[id]).length;
+    return {
+      name: c,
+      solved,
+      total: ids.length,
+      pct: ids.length ? (solved / ids.length) * 100 : 0,
+    };
+  });
 }
 
 function isDarkMode(): boolean {
   // CSES sets rel="stylesheet" on the dark stylesheet when dark mode is active
-  const darkSheet = document.getElementById('styles-dark') as HTMLLinkElement | null;
-  return darkSheet?.rel === 'stylesheet';
+  const darkSheet = document.getElementById(
+    "styles-dark",
+  ) as HTMLLinkElement | null;
+  return darkSheet?.rel === "stylesheet";
 }
 
 // ─── SVG Donut Pie Chart ──────────────────────────────────────────────────────
@@ -61,22 +69,26 @@ function buildPieChart(solved: number, total: number, dark: boolean): string {
   const pct = total > 0 ? solved / total : 0;
   const unsolved = total - solved;
   const r = 52;
-  const cx = 70, cy = 70;
+  const cx = 70,
+    cy = 70;
   const circumference = 2 * Math.PI * r;
   const solvedLen = pct * circumference;
   const unsolvedLen = circumference - solvedLen;
 
-  const textColor = dark ? '#e2e8f0' : '#111827';
-  const mutedColor = dark ? '#94a3b8' : '#6b7280';
-  const unsolvedColor = dark ? '#334155' : '#e5e7eb';
+  const textColor = "currentColor";
+  const mutedColor = "rgba(128, 128, 128, 0.8)";
+  const unsolvedColor = "rgba(128, 128, 128, 0.2)";
 
   // Pie wedge using stroke-dasharray trick on a circle
-  const solvedArc = pct > 0 ? `
+  const solvedArc =
+    pct > 0
+      ? `
     <circle cx="${cx}" cy="${cy}" r="${r}"
       fill="none" stroke="#22c55e" stroke-width="22"
       stroke-dasharray="${solvedLen.toFixed(2)} ${unsolvedLen.toFixed(2)}"
       transform="rotate(-90 ${cx} ${cy})"
-      stroke-linecap="butt"/>` : '';
+      stroke-linecap="butt"/>`
+      : "";
 
   const svg = `
   <svg width="140" height="140" viewBox="0 0 140 140" style="flex-shrink:0;display:block;margin:0 auto">
@@ -104,40 +116,56 @@ function buildPieChart(solved: number, total: number, dark: boolean): string {
         Solved
       </div>
       <div style="display:flex;align-items:center;gap:6px">
-        <div style="width:10px;height:10px;border-radius:50%;background:${unsolvedColor};border:1px solid ${dark ? '#475569' : '#d1d5db'}"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${unsolvedColor};border:1px solid rgba(128,128,128,0.2)"></div>
         <span style="color:${mutedColor}">Unsolved</span>
       </div>
     </div>
   </div>`;
 }
 
-
 // ─── Streak calc ──────────────────────────────────────────────────────────────
 
-
-
-function calcStreaks(heatmap: Record<string, number>): { cur: number; best: number } {
-  const dates = Object.keys(heatmap).filter((d) => (heatmap[d] ?? 0) > 0).sort();
+function calcStreaks(heatmap: Record<string, number>): {
+  cur: number;
+  best: number;
+} {
+  const dates = Object.keys(heatmap)
+    .filter((d) => (heatmap[d] ?? 0) > 0)
+    .sort();
   if (!dates.length) return { cur: 0, best: 0 };
 
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const todayStr = toDateStr(today);
   const yestStr = toDateStr(new Date(today.getTime() - 86400000));
 
   let cur = 0;
   if ((heatmap[todayStr] ?? 0) > 0 || (heatmap[yestStr] ?? 0) > 0) {
-    let anchor = (heatmap[todayStr] ?? 0) > 0 ? today : new Date(today.getTime() - 86400000);
+    let anchor =
+      (heatmap[todayStr] ?? 0) > 0
+        ? today
+        : new Date(today.getTime() - 86400000);
     cur = 1;
     for (;;) {
       const prev = new Date(anchor.getTime() - 86400000);
-      if ((heatmap[toDateStr(prev)] ?? 0) > 0) { cur++; anchor = prev; } else break;
+      if ((heatmap[toDateStr(prev)] ?? 0) > 0) {
+        cur++;
+        anchor = prev;
+      } else break;
     }
   }
 
-  let best = 0, tmp = 1;
+  let best = 0,
+    tmp = 1;
   for (let i = 1; i < dates.length; i++) {
-    const diff = (new Date(dates[i]).getTime() - new Date(dates[i - 1]).getTime()) / 86400000;
-    if (diff === 1) tmp++; else { best = Math.max(best, tmp); tmp = 1; }
+    const diff =
+      (new Date(dates[i]).getTime() - new Date(dates[i - 1]).getTime()) /
+      86400000;
+    if (diff === 1) tmp++;
+    else {
+      best = Math.max(best, tmp);
+      tmp = 1;
+    }
   }
   best = Math.max(best, tmp, cur);
   return { cur, best };
@@ -157,19 +185,20 @@ export async function renderDashboard(): Promise<string> {
 
   const categoryStats = getCategoryStats(solvedProblems);
 
-  // Colors matching CSES theme
-  const bg       = dark ? '#1a1a2e' : '#ffffff';
-  const cardBg   = dark ? '#16213e' : '#f8f9fa';
-  const border   = dark ? '#2d3561' : '#dee2e6';
-  const text     = dark ? '#e2e8f0' : '#222222';
-  const muted    = dark ? '#94a3b8' : '#666666';
-  const green    = '#00a000';
+  // Colors matching CSES theme dynamically
+  const bg = "transparent";
+  const cardBg = "rgba(128, 128, 128, 0.05)";
+  const border = "rgba(128, 128, 128, 0.2)";
+  const text = "inherit";
+  const muted = "rgba(128, 128, 128, 0.8)";
+  const green = "#22c55e";
 
   // Category table rows
-  const catRows = categoryStats.map(({ name, solved: s, total: t, pct: p }, i) => {
-    const rowBg = i % 2 === 0 ? bg : cardBg;
-    const color = p >= 100 ? green : p >= 50 ? '#2563eb' : '#94a3b8';
-    return `
+  const catRows = categoryStats
+    .map(({ name, solved: s, total: t, pct: p }, i) => {
+      const rowBg = i % 2 === 0 ? bg : cardBg;
+      const color = p >= 100 ? green : p >= 50 ? "#2563eb" : "#94a3b8";
+      return `
       <tr style="border-bottom:1px solid ${border}">
         <td style="padding:8px 14px;font-size:14px;color:${text}">${name}</td>
         <td style="padding:8px 14px;text-align:right;font-size:13px;color:${muted};white-space:nowrap">${s} / ${t}</td>
@@ -180,7 +209,8 @@ export async function renderDashboard(): Promise<string> {
         </td>
         <td style="padding:8px 14px;text-align:right;font-size:12px;font-weight:600;color:${color};white-space:nowrap;min-width:52px">${p.toFixed(1)}%</td>
       </tr>`;
-  }).join('');
+    })
+    .join("");
 
   return `
 <div id="cses-dashboard-panel" style="font-family:inherit">
@@ -211,7 +241,7 @@ export async function renderDashboard(): Promise<string> {
       <!-- Bar -->
       <div style="margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px;font-weight:600;color:${text}">${solved} / ${total} problems</span>
+          <span style="font-size:13px;font-weight:600;color:currentColor">${solved} / ${total} problems</span>
           <span style="font-size:13px;font-weight:700;color:${green}">${pct.toFixed(1)}%</span>
         </div>
         <div style="background:${border};border-radius:999px;height:10px;overflow:hidden">
@@ -261,40 +291,46 @@ export async function renderDashboard(): Promise<string> {
 // ─── Inject dropdown ───────────────────────────────────────────────────────────
 
 async function injectDashboardDropdown() {
+  const stats = await getUserStats();
+  if (!stats.username) return;
+
   // Only inject on pages with content (like the tasks list)
-  const content = document.querySelector<HTMLElement>('.content');
-  if (!content || document.getElementById('cses-dashboard-wrapper')) return;
+  const content = document.querySelector<HTMLElement>(".content");
+  if (!content || document.getElementById("cses-dashboard-wrapper")) return;
 
   // Only inject on the main task list page (e.g. /problemset/ or /problemset/list/)
   // Hide it on /stats/, /hacks/, /task/, etc.
   const path = window.location.pathname;
   if (!path.match(/\/(problemset|list)\/?$/)) return;
 
-  const panelWrapper = document.createElement('div');
-  panelWrapper.id = 'cses-dashboard-wrapper';
-  panelWrapper.style.marginBottom = '24px';
-  
-  const dark = isDarkMode();
-  const border = dark ? '#2d3561' : '#dee2e6';
-  const bg = dark ? '#16213e' : '#f8f9fa';
-  const text = dark ? '#e2e8f0' : '#222222';
+  const panelWrapper = document.createElement("div");
+  panelWrapper.id = "cses-dashboard-wrapper";
+  panelWrapper.style.marginBottom = "24px";
 
-  const summary = document.createElement('div');
-  summary.style.cursor = 'pointer';
-  summary.style.fontSize = '16px';
-  summary.style.fontWeight = '600';
-  summary.style.padding = '14px 18px';
-  summary.style.backgroundColor = bg;
+  const dark = isDarkMode();
+  const border = "rgba(128, 128, 128, 0.2)"; // Neutral border
+
+  const summary = document.createElement("div");
+  summary.style.cursor = "pointer";
+  summary.style.fontSize = "16px";
+  summary.style.fontWeight = "600";
+  summary.style.padding = "14px 18px";
+  // Glassmorphism effect: slight white/gray tint with backdrop blur
+  summary.style.backgroundColor = "rgba(128, 128, 128, 0.08)";
+  summary.style.backdropFilter = "blur(12px)";
+  summary.style.setProperty("-webkit-backdrop-filter", "blur(12px)");
   summary.style.border = `1px solid ${border}`;
-  summary.style.borderRadius = '8px';
-  summary.style.color = text;
-  summary.style.display = 'flex';
-  summary.style.alignItems = 'center';
-  summary.style.justifyContent = 'space-between';
-  summary.style.transition = 'background-color 0.2s';
-  summary.onmouseenter = () => summary.style.backgroundColor = dark ? '#1e293b' : '#e2e8f0';
-  summary.onmouseleave = () => summary.style.backgroundColor = bg;
-  
+  summary.style.borderRadius = "8px";
+  summary.style.color = "inherit"; // Automatically adapts to CSES text color
+  summary.style.display = "flex";
+  summary.style.alignItems = "center";
+  summary.style.justifyContent = "space-between";
+  summary.style.transition = "background-color 0.2s";
+  summary.onmouseenter = () =>
+    (summary.style.backgroundColor = "rgba(128, 128, 128, 0.15)");
+  summary.onmouseleave = () =>
+    (summary.style.backgroundColor = "rgba(128, 128, 128, 0.08)");
+
   // Custom arrow and text
   summary.innerHTML = `
     <span style="display:flex;align-items:center;gap:10px">
@@ -307,17 +343,18 @@ async function injectDashboardDropdown() {
   panelWrapper.appendChild(summary);
 
   // Use CSS grid transition for smooth height animation
-  const dashboardContainer = document.createElement('div');
-  dashboardContainer.style.display = 'grid';
-  dashboardContainer.style.gridTemplateRows = '0fr';
-  dashboardContainer.style.transition = 'grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-  
-  const innerContainer = document.createElement('div');
-  innerContainer.style.overflow = 'hidden';
+  const dashboardContainer = document.createElement("div");
+  dashboardContainer.style.display = "grid";
+  dashboardContainer.style.gridTemplateRows = "0fr";
+  dashboardContainer.style.transition =
+    "grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
 
-  const contentDiv = document.createElement('div');
-  contentDiv.style.padding = '24px 0 8px 0';
-  
+  const innerContainer = document.createElement("div");
+  innerContainer.style.overflow = "hidden";
+
+  const contentDiv = document.createElement("div");
+  contentDiv.style.padding = "24px 0 8px 0";
+
   innerContainer.appendChild(contentDiv);
   dashboardContainer.appendChild(innerContainer);
   panelWrapper.appendChild(dashboardContainer);
@@ -328,14 +365,14 @@ async function injectDashboardDropdown() {
   let loaded = false;
   let isOpen = false;
 
-  summary.addEventListener('click', async () => {
+  summary.addEventListener("click", async () => {
     isOpen = !isOpen;
-    const arrow = document.getElementById('cses-db-arrow');
-    
+    const arrow = document.getElementById("cses-db-arrow");
+
     if (isOpen) {
-      if (arrow) arrow.style.transform = 'rotate(180deg)';
-      dashboardContainer.style.gridTemplateRows = '1fr';
-      
+      if (arrow) arrow.style.transform = "rotate(180deg)";
+      dashboardContainer.style.gridTemplateRows = "1fr";
+
       if (!loaded) {
         loaded = true;
         contentDiv.innerHTML = `
@@ -346,40 +383,45 @@ async function injectDashboardDropdown() {
         contentDiv.innerHTML = html;
       }
     } else {
-      if (arrow) arrow.style.transform = 'rotate(0deg)';
-      dashboardContainer.style.gridTemplateRows = '0fr';
+      if (arrow) arrow.style.transform = "rotate(0deg)";
+      dashboardContainer.style.gridTemplateRows = "0fr";
     }
   });
 }
 
 async function injectUserPageHeatmap() {
+  const stats = await getUserStats();
+  if (!stats.username) return;
+
   const path = window.location.pathname;
-  if (!path.startsWith('/user/')) return;
-  
-  const content = document.querySelector<HTMLElement>('.content');
+  if (!path.startsWith("/user/")) return;
+
+  const content = document.querySelector<HTMLElement>(".content");
   if (!content) return;
 
   // Find the 'User information' header
-  const h2s = Array.from(content.querySelectorAll('h2'));
-  const userInfoH2 = h2s.find(h => h.textContent?.includes('User information'));
+  const h2s = Array.from(content.querySelectorAll("h2"));
+  const userInfoH2 = h2s.find((h) =>
+    h.textContent?.includes("User information"),
+  );
   if (!userInfoH2) return;
-  
+
   // The table is usually immediately after the h2
   const userInfoTable = userInfoH2.nextElementSibling;
-  if (!userInfoTable || userInfoTable.tagName !== 'TABLE') return;
+  if (!userInfoTable || userInfoTable.tagName !== "TABLE") return;
 
-  if (document.getElementById('cses-user-dashboard-injected')) return;
+  if (document.getElementById("cses-user-dashboard-injected")) return;
 
   const html = await renderDashboard();
 
-  const wrapper = document.createElement('div');
-  wrapper.id = 'cses-user-dashboard-injected';
-  wrapper.style.margin = '32px 0';
+  const wrapper = document.createElement("div");
+  wrapper.id = "cses-user-dashboard-injected";
+  wrapper.style.margin = "32px 0";
   wrapper.innerHTML = `
-    <h2>Local Dashboard</h2>
+    <h2>Progress Dashboard</h2>
     ${html}
   `;
-  
+
   // Insert after the User information table
   userInfoTable.parentNode?.insertBefore(wrapper, userInfoTable.nextSibling);
 }
@@ -388,4 +430,3 @@ export function onExecute() {
   injectDashboardDropdown();
   injectUserPageHeatmap();
 }
-

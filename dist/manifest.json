@@ -17,12 +17,12 @@
   "content_scripts": [
     {
       "js": [
-        "assets/username.ts-loader-C07u2fRt.js",
-        "assets/solvedProblems.ts-loader-BiVv9Eo6.js",
-        "assets/bookmarks.ts-loader-CAnaWi9E.js",
-        "assets/injectDashboard.ts-loader-CZDV5B7g.js",
-        "assets/submitEditor.ts-loader-CXskSyVu.js",
-        "assets/copyBlocks.ts-loader-EnDG_kB7.js"
+        "assets/username.ts-loader-o_mMMZ27.js",
+        "assets/solvedProblems.ts-loader-D-aRVG5K.js",
+        "assets/bookmarks.ts-loader-CBWQbQAw.js",
+        "assets/injectDashboard.ts-loader-B4VQbZnH.js",
+        "assets/submitEditor.ts-loader-DWOfGEbY.js",
+        "assets/copyBlocks.ts-loader-BCFAd2yV.js"
       ],
       "matches": [
         "*://cses.fi/*"
@@ -50,14 +50,15 @@
         "*://cses.fi/*"
       ],
       "resources": [
-        "assets/parser-CDGgk22_.js",
-        "assets/storage-3fLFYjv2.js",
-        "assets/username.ts-C0N937tn.js",
-        "assets/solvedProblems.ts-v5ydPmCB.js",
-        "assets/bookmarks.ts-FV8YT_Pw.js",
-        "assets/injectDashboard.ts-Duzc1jEG.js",
-        "assets/submitEditor.ts-CBqGn-C8.js",
-        "assets/copyBlocks.ts-t29McPee.js"
+        "assets/parser-CT_qkLUG.js",
+        "assets/storage-DPB6uFbM.js",
+        "assets/username.ts-CAKMZgjK.js",
+        "assets/cses-problems-BDV4gcZH.js",
+        "assets/solvedProblems.ts-Ca4289xt.js",
+        "assets/bookmarks.ts-DA8sksko.js",
+        "assets/injectDashboard.ts-CuVVWfSk.js",
+        "assets/submitEditor.ts-_KJxN2VK.js",
+        "assets/copyBlocks.ts-BTSQvWBm.js"
       ],
       "use_dynamic_url": false
     }

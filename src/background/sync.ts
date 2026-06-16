@@ -1,3 +1,5 @@
+import { setUsername, setSolvedProblems, setHeatmapData, setLastUpdated } from '../services/storage';
+
 // Background service worker — message hub for CSES Progress Dashboard.
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -12,7 +14,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   switch (type) {
     case 'SET_USERNAME': {
-      chrome.storage.local.set({ username: payload.username }, () => {
+      setUsername(payload.username as string | null).then(() => {
         console.log('[CSES Dashboard] Username set:', payload.username);
         sendResponse({ ok: true });
       });
@@ -20,16 +22,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
 
     case 'UPDATE_SOLVED': {
-      const updates: Record<string, unknown> = {
-        lastUpdated: Date.now(),
-      };
-      if (payload.solved) updates.solvedProblems = payload.solved;
-      if (payload.heatmap) updates.heatmapData = payload.heatmap;
-
-      chrome.storage.local.set(updates, () => {
+      (async () => {
+        if (payload.solved) await setSolvedProblems(payload.solved as Record<string, boolean>);
+        if (payload.heatmap) await setHeatmapData(payload.heatmap as Record<string, number>);
+        await setLastUpdated();
         console.log('[CSES Dashboard] Solved problems updated.');
         sendResponse({ ok: true });
-      });
+      })();
       return true;
     }
 
