@@ -12,6 +12,7 @@ Because we believe this tool should be completely free for student developers, i
 
 1. **Clone or Download the Repository**
    Download this project as a ZIP file and extract it, or clone it using git:
+
    ```bash
    git clone https://github.com/your-username/cses-pro.git
    cd cses-pro
@@ -19,16 +20,19 @@ Because we believe this tool should be completely free for student developers, i
 
 2. **Install Developer Dependencies**
    Make sure you have [Node.js](https://nodejs.org/) installed. Run:
+
    ```bash
    npm install
    ```
 
 3. **Build the Extension**
    Compile the TypeScript files and bundle the extension using Vite:
+
    ```bash
    npm run build
    ```
-   *(Note: On Windows systems with strict script execution policies, you can run `cmd /c "npm run build"`)*
+
+   _(Note: On Windows systems with strict script execution policies, you can run `cmd /c "npm run build"`)_
 
 4. **Load the Extension in Google Chrome**
    - Open Chrome and navigate to: `chrome://extensions/`
@@ -42,77 +46,91 @@ Because we believe this tool should be completely free for student developers, i
 ## ✨ Features
 
 ### 🔐 1. Multi-Account & Authentication Isolation
-* **Seamless Switching:** Your solved problem statistics, daily streaks, and bookmarks are isolated and mapped specifically to your active CSES username. If you share a computer, the extension automatically switches user profiles as soon as a different account logs in.
-* **Auto-Detection:** The extension reads the logged-in user directly from the CSES header navigation bar.
-* **Privacy First:** When logged out, the extension securely unmounts the dashboard, pauses tracking, and protects your database profiles.
+
+- **Seamless Switching:** Your solved problem statistics, daily streaks, and bookmarks are isolated and mapped specifically to your active CSES username. If you share a computer, the extension automatically switches user profiles as soon as a different account logs in.
+- **Auto-Detection:** The extension reads the logged-in user directly from the CSES header navigation bar.
+- **Privacy First:** When logged out, the extension securely unmounts the dashboard, pauses tracking, and protects your database profiles.
 
 #### 🔄 Comparison
-| Before (Shared / Mixed Storage) | After (Isolated Profiles & Auto-detection) |
-| :---: | :---: |
+
+|           Before (Shared / Mixed Storage)            |     After (Isolated Profiles & Auto-detection)     |
+| :--------------------------------------------------: | :------------------------------------------------: |
 | ![Logged Out or Mixed State](images/before_auth.png) | ![Isolated Profile Mounted](images/after_auth.png) |
 
 ---
 
 ### 📊 2. Dynamic In-Page Progress Dashboard
+
 The extension injects a premium dashboard directly at the top of the CSES Problemset pages (`/problemset` and `/problemset/list`) as well as on your public user profile page (`/user/USERNAME`).
-* **Collapsible summary panel:** Styled with modern glassmorphism, backdrop filters, and hover transitions that blend natively with both CSES light and dark themes.
-* **Interactive SVG Donut Pie Chart:** A smooth visualization showing your Solved vs Unsolved problem ratios.
-* **Overall Progress stats:** Real-time problem counts (Solved / Total) and progress percentage calculated to exactly 1 decimal place.
-* **Streak Tracking:** Displays your current daily solve streak (🔥) and your all-time best streak (🏆) using date calculation.
-* **Category Progress Matrix:** A detailed table listing all CSES categories with custom progress bars indicating completion percentage.
+
+- **Collapsible summary panel:** Styled with modern glassmorphism, backdrop filters, and hover transitions that blend natively with both CSES light and dark themes.
+- **Interactive SVG Donut Pie Chart:** A smooth visualization showing your Solved vs Unsolved problem ratios.
+- **Overall Progress stats:** Real-time problem counts (Solved / Total) and progress percentage calculated to exactly 1 decimal place.
+- **Streak Tracking:** Displays your current daily solve streak (🔥) and your all-time best streak (🏆) using date calculation.
+- **Category Progress Matrix:** A detailed table listing all CSES categories with custom progress bars indicating completion percentage.
 
 #### 🔄 Comparison
-| Before (Linear Task Lists Only) | After (Premium Analytics Overlay) |
-| :---: | :---: |
-| ![Original CSES Problemset](images/before_dashboard.png) | ![CSES Pro Progress Dashboard](images/after_dashboard.png) |
+
+|       Before (Linear Task Lists Only)       |       After (Premium Analytics Overlay)        |
+| :-----------------------------------------: | :--------------------------------------------: |
+| ![Original CSES Problemset](images/2_b.png) | ![CSES Pro Progress Dashboard](images/2_a.png) |
 
 ---
 
 ### 🔍 3. Advanced Filtering & Sorting Controls
+
 Injected right below the dashboard, these interactive toggles give you powerful control over the massive CSES problem list:
-* **Show Only Marked Problems:** A checkbox filter that instantly narrows down the task lists to show only your bookmarked/starred problems. It automatically collapses and hides empty categories and category headers to clean up your view.
-* **Sort by Most Solved:** A checkbox filter that re-orders the problems within each category in descending order of their total solve count (popularity). Unchecking it instantly restores the original CSES ordering.
-* **🎲 Random Problem Selector:** Injects a button that redirects you to a random task. If you have "Show only marked problems" active, it intelligently selects from your bookmarked tasks; otherwise, it redirects to any random problem from the entire set.
+
+- **Show Only Marked Problems:** A checkbox filter that instantly narrows down the task lists to show only your bookmarked/starred problems. It automatically collapses and hides empty categories and category headers to clean up your view.
+- **Sort by Most Solved:** A checkbox filter that re-orders the problems within each category in descending order of their total solve count (popularity). Unchecking it instantly restores the original CSES ordering.
+- **🎲 Random Problem Selector:** Injects a button that redirects you to a random task. If you have "Show only marked problems" active, it intelligently selects from your bookmarked tasks; otherwise, it redirects to any random problem from the entire set.
 
 #### 🔄 Comparison
-| Before (Static & Fixed Listings) | After (Interactive Filters, Sorting & Random Pick) |
-| :---: | :---: |
-| ![Static Problem Grid](images/before_filters.png) | ![Filtering & Sorting Controls](images/after_filters.png) |
+
+|    Before (Static & Fixed Listings)    | After (Interactive Filters, Sorting & Random Pick) |
+| :------------------------------------: | :------------------------------------------------: |
+| ![Static Problem Grid](images/3_b.png) |  ![Filtering & Sorting Controls](images/3_a.png)   |
 
 ---
 
 ### 📝 4. Codeforces-Style Code Paste Submit Editor
-* Replaces the native, restrictive file upload input on the `cses.fi/submit` page with a clean Codeforces-style code paste editor text area.
-* Includes a toggle switch ("Paste code" / "Upload file") so you can switch back to standard file uploads at any time.
-* **Auto Language Extension:** Detects your selected language (C++, Python, Java, Rust, etc.) in the dropdown, automatically names the virtual file (e.g., `solution.cpp`, `solution.py`), and handles the multi-part form submission transparently behind the scenes.
+
+- Replaces the native, restrictive file upload input on the `cses.fi/submit` page with a clean Codeforces-style code paste editor text area.
+- Includes a toggle switch ("Paste code" / "Upload file") so you can switch back to standard file uploads at any time.
+- **Auto Language Extension:** Detects your selected language (C++, Python, Java, Rust, etc.) in the dropdown, automatically names the virtual file (e.g., `solution.cpp`, `solution.py`), and handles the multi-part form submission transparently behind the scenes.
 
 #### 🔄 Comparison
-| Before (File Upload Only) | After (Text Paste Area with Auto File-Naming) |
-| :---: | :---: |
-| ![Original File Upload Interface](images/before_editor.png) | ![Code Paste Editor Interface](images/after_editor.png) |
+
+|             Before (File Upload Only)             | After (Text Paste Area with Auto File-Naming)  |
+| :-----------------------------------------------: | :--------------------------------------------: |
+| ![Original File Upload Interface](images/4_b.png) | ![Code Paste Editor Interface](images/4_a.png) |
 
 ---
 
 ### 📋 5. Codeforces-Style Copy Boxes
-* Automatically transforms all standard input, output, and code block panels on problem task pages into structured, styled boxes.
-* Injects a **"Copy"** button on the title header of each box. Clicking it instantly copies the contents to your clipboard with a 2-second visual confirmation ("Copied!").
-* Integrates original page text (e.g., "Input" / "Output" paragraph labels) directly into the box headers for a clean, compact layout.
+
+- Automatically transforms all standard input, output, and code block panels on problem task pages into structured, styled boxes.
+- Injects a **"Copy"** button on the title header of each box. Clicking it instantly copies the contents to your clipboard with a 2-second visual confirmation ("Copied!").
+- Integrates original page text (e.g., "Input" / "Output" paragraph labels) directly into the box headers for a clean, compact layout.
 
 #### 🔄 Comparison
-| Before (Raw Preformatted Text) | After (Copy-to-Clipboard Wrapped Box) |
-| :---: | :---: |
-| ![Original Text Blocks](images/before_copy.png) | ![Enhanced Copyable Code Boxes](images/after_copy.png) |
+
+|     Before (Raw Preformatted Text)      |      After (Copy-to-Clipboard Wrapped Box)      |
+| :-------------------------------------: | :---------------------------------------------: |
+| ![Original Text Blocks](images/5_b.png) | ![Enhanced Copyable Code Boxes](images/5_a.png) |
 
 ---
 
 ### ⭐ 6. Problem Bookmark Button
-* Injects an elegant star bookmark icon (⭐) directly next to the problem title on all `cses.fi/problemset/task/*` pages.
-* Bookmarking a problem highlights its row on the main problem list in a subtle gold accent, making it easy to spot and filter.
+
+- Injects an elegant star bookmark icon (⭐) directly next to the problem title on all `cses.fi/problemset/task/*` pages.
+- Bookmarking a problem highlights its row on the main problem list in a subtle gold accent, making it easy to spot and filter.
 
 #### 🔄 Comparison
-| Before (No Problem Bookmarking) | After (One-click Star / Gold Highlighted Rows) |
-| :---: | :---: |
-| ![No Way to Mark Problems](images/before_bookmark.png) | ![Bookmarked Problem & List Highlight](images/after_bookmark.png) |
+
+|      Before (No Problem Bookmarking)       |     After (One-click Star / Gold Highlighted Rows)     |
+| :----------------------------------------: | :----------------------------------------------------: |
+| ![No Way to Mark Problems](images/6_b.png) | ![Bookmarked Problem & List Highlight](images/6_a.png) |
 
 ---
 
@@ -124,7 +142,14 @@ This is the exact, complete file layout of the CSES Pro project workspace:
 CSES Extension/
 ├── dist/                      # Bundled Chrome Extension files (auto-generated on build)
 ├── icons/
-│   └── image.png              # Extension toolbar / details page icon
+│   └── image.png              # Chrome toolbar and store icon
+├── images/
+│   └── .gitkeep               # Directory containing before/after comparison screenshots
+├── public/
+│   └── icons/                 # Subfolders matching manifest.json icon sizes
+│       ├── icon128.png        # 128x128 pixel extension icon
+│       ├── icon16.png         # 16x16 pixel extension icon
+│       └── icon48.png         # 48x48 pixel extension icon
 ├── src/
 │   ├── background/
 │   │   └── sync.ts            # Background service worker message relayer and storage sync
@@ -173,37 +198,37 @@ All user data is stored inside Google Chrome's local database (`chrome.storage.l
 chrome.storage.local = {
   // Global active session pointer (Type: string | null)
   // Identifies which user profile is active. If logged out, this is null.
-  "username": "NISARG_07",
-  
+  username: "NISARG_07",
+
   // User isolated solved problem list (Type: Record<string, boolean>)
   // Maps solved task ID strings to true status.
-  "NISARG_07_solvedProblems": {
-    "1068": true,
-    "1069": true,
-    "1070": true
+  NISARG_07_solvedProblems: {
+    1068: true,
+    1069: true,
+    1070: true,
   },
-  
+
   // User bookmarked problems (Type: Record<string, boolean>)
   // Maps starred task ID strings to true status.
-  "NISARG_07_bookmarks": {
-    "1068": true
+  NISARG_07_bookmarks: {
+    1068: true,
   },
-  
+
   // Daily solve dates and counts (Type: Record<string, number>)
   // Records the count of solved problems on specific dates.
   // Note: Although named 'heatmapData' in the codebase to align with background structures,
   // this is used exclusively to calculate and track your daily solve streaks (current and best streak).
-  "NISARG_07_heatmapData": {
+  NISARG_07_heatmapData: {
     "2026-06-15": 2,
-    "2026-06-16": 1
+    "2026-06-16": 1,
   },
-  
+
   // Unix timestamp of the last local database sync (Type: number)
-  "NISARG_07_lastUpdated": 1781603689000
-}
+  NISARG_07_lastUpdated: 1781603689000,
+};
 ```
 
-* **Automatic Migration:** On first load after logging in, the extension automatically migrates any legacy, un-prefixed storage keys (`solvedProblems`, `bookmarks`, `heatmapData`, `lastUpdated`) to the new user-prefixed namespace.
+- **Automatic Migration:** On first load after logging in, the extension automatically migrates any legacy, un-prefixed storage keys (`solvedProblems`, `bookmarks`, `heatmapData`, `lastUpdated`) to the new user-prefixed namespace.
 
 ---
 
@@ -211,13 +236,13 @@ chrome.storage.local = {
 
 To ensure that the dashboard overlays fit CSES perfectly, we adhere to the following design tokens:
 
-| Element / Action | Color Token | Native CSES Matching Style |
-|---|---|---|
-| Dashboard Card Background | `rgba(128, 128, 128, 0.05)` | Blends smoothly with page background |
-| Dashboard Border | `rgba(128, 128, 128, 0.2)` | Matches native grid lines |
-| Progress Solved Indicator | `#22c55e` (Green-500) | Matches CSES success badge |
-| Active Progress Bar | `#2563eb` (Blue-600) | Standard utility progress |
-| Unsolved / Muted Indicator | `rgba(128, 128, 128, 0.8)` | Muted gray matching native secondary text |
-| Streak Icon & Fire Count | `#f97316` (Orange-500) | Custom active 🔥 color |
-| Best Streak & Trophy Count | `#a855f7` (Purple-500) | Custom milestone 🏆 color |
-| Font Families | `inherit` (CSES native), `monospace` (streaks) | Inherits CSES body fonts to look like an official page feature |
+| Element / Action           | Color Token                                    | Native CSES Matching Style                                     |
+| -------------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
+| Dashboard Card Background  | `rgba(128, 128, 128, 0.05)`                    | Blends smoothly with page background                           |
+| Dashboard Border           | `rgba(128, 128, 128, 0.2)`                     | Matches native grid lines                                      |
+| Progress Solved Indicator  | `#22c55e` (Green-500)                          | Matches CSES success badge                                     |
+| Active Progress Bar        | `#2563eb` (Blue-600)                           | Standard utility progress                                      |
+| Unsolved / Muted Indicator | `rgba(128, 128, 128, 0.8)`                     | Muted gray matching native secondary text                      |
+| Streak Icon & Fire Count   | `#f97316` (Orange-500)                         | Custom active 🔥 color                                         |
+| Best Streak & Trophy Count | `#a855f7` (Purple-500)                         | Custom milestone 🏆 color                                      |
+| Font Families              | `inherit` (CSES native), `monospace` (streaks) | Inherits CSES body fonts to look like an official page feature |
