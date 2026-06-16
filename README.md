@@ -53,9 +53,9 @@ Because we believe this tool should be completely free for student developers, i
 
 #### 🔄 Comparison
 
-|           Before (Shared / Mixed Storage)            |     After (Isolated Profiles & Auto-detection)     |
-| :--------------------------------------------------: | :------------------------------------------------: |
-| ![Logged Out or Mixed State](images/before_auth.png) | ![Isolated Profile Mounted](images/after_auth.png) |
+|       Before (Shared / Mixed Storage)        | After (Isolated Profiles & Auto-detection)  |
+| :------------------------------------------: | :-----------------------------------------: |
+| ![Logged Out or Mixed State](images/1_b.png) | ![Isolated Profile Mounted](images/1_a.png) |
 
 ---
 
