@@ -156,7 +156,8 @@ The extension relies on a clean, modular architecture combining Content Scripts,
 1. **Passive Scraping Engine (`solvedProblems.ts`):** Whenever you load the main CSES list, the script scans the page, identifies problems with the green checkmark (`.task-score.full`), and merges them into storage.
 2. **Authentication Guards (`username.ts`):** Scans the page header. If a username exists, it loads the corresponding database namespace. If a "Login" button is found, it unmounts the data layout to maintain privacy.
 3. **Data Prefixing & Multi-Account Isolation (`storage.ts`):** All saved keys are dynamically prefixed with the active username. For example, if user `Nisarg` is logged in, their solved problems list is stored under `Nisarg_solvedProblems` while another user's is kept under `OtherUser_solvedProblems`.
-4. **Reactive Theme Adaptation:** Custom CSS elements use HSL/RGBA colors (e.g. `rgba(128, 128, 128, 0.08)`) and inherit theme colors using CSS variables. A `MutationObserver` actively watches the document `<head>` for stylesheet swaps to toggle custom classes natively.
+4. **Reactive Theme Adaptation (`submitEditor.ts` / `injectDashboard.ts`):** Custom CSS elements use relative transparency values (`rgba(128, 128, 128, 0.08)`) and inherit theme colors using CSS variables. In `submitEditor.ts`, a `MutationObserver` watches the document `<head>` for stylesheet swaps to toggle color classes natively.
+5. **Background Message Relay (`sync.ts`):** Listens for state update messages from content scripts and updates user-prefixed storage records asynchronously.
 
 ---
 
@@ -207,4 +208,4 @@ To ensure that the dashboard overlays fit CSES perfectly, we adhere to the follo
 | Unsolved / Muted Indicator | `rgba(128, 128, 128, 0.8)` | Muted gray matching native secondary text |
 | Streak Icon & Fire Count | `#f97316` (Orange-500) | Custom active 🔥 color |
 | Best Streak & Trophy Count | `#a855f7` (Purple-500) | Custom milestone 🏆 color |
-| Font Families | `Inter`, `system-ui`, `monospace` | Inherited from the browser / CSES styling |
+| Font Families | `inherit` (CSES native), `monospace` (streaks) | Inherits CSES body fonts to look like an official page feature |
