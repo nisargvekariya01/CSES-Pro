@@ -124,7 +124,7 @@ CSES Extension/
 ├── icons/
 │   └── image.png             # Adaptive extension logo
 ├── public/
-│   └── icons/                # Extension icons/assets (if any)
+│   └── icons/                # High-res extension icons (icon16.png, icon48.png, icon128.png)
 ├── src/
 │   ├── background/
 │   │   └── sync.ts           # Background service worker message listener
@@ -140,7 +140,7 @@ CSES Extension/
 │   ├── services/
 │   │   ├── parser.ts         # DOM querying helpers for username and solves
 │   │   └── storage.ts        # User-prefixed local storage wrapper (chrome.storage.local)
-│   └── types/                # TS type definitions (empty folder after cleanup)
+│   └── types/                # TypeScript declaration folder (retained for compiler paths)
 ├── manifest.json             # Manifest V3 extension configuration
 ├── package.json              # Node.js dependencies and scripts
 ├── tsconfig.json             # TypeScript rules configuration
@@ -153,11 +153,12 @@ CSES Extension/
 
 The extension relies on a clean, modular architecture combining Content Scripts, a Background Service Worker, and Chrome's Storage APIs:
 
-1. **Passive Scraping Engine (`solvedProblems.ts`):** Whenever you load the main CSES list, the script scans the page, identifies problems with the green checkmark (`.task-score.full`), and merges them into storage.
-2. **Authentication Guards (`username.ts`):** Scans the page header. If a username exists, it loads the corresponding database namespace. If a "Login" button is found, it unmounts the data layout to maintain privacy.
-3. **Data Prefixing & Multi-Account Isolation (`storage.ts`):** All saved keys are dynamically prefixed with the active username. For example, if user `Nisarg` is logged in, their solved problems list is stored under `Nisarg_solvedProblems` while another user's is kept under `OtherUser_solvedProblems`.
-4. **Reactive Theme Adaptation (`submitEditor.ts` / `injectDashboard.ts`):** Custom CSS elements use relative transparency values (`rgba(128, 128, 128, 0.08)`) and inherit theme colors using CSS variables. In `submitEditor.ts`, a `MutationObserver` watches the document `<head>` for stylesheet swaps to toggle color classes natively.
+1. **Scraping & Interaction Engine (`solvedProblems.ts`):** Scans the CSES problemset list page to harvest all problems with the green success badge (`.task-score.full`) and records them. It also injects the interactive filtering checkbox (to show only bookmarked tasks), the popularity sorting checkbox (to sort tasks by solve count), and the random problem selector. On task pages, it detects solves incrementally.
+2. **Authentication Guards (`username.ts`):** Scans the CSES page header for the logged-in user profile link. If a user is logged in, it stores their username. If the user logs out, it clears the active username, causing the dashboard scripts to automatically skip rendering and maintain data privacy.
+3. **Data Prefixing & Multi-Account Isolation (`storage.ts`):** All saved keys are dynamically prefixed with the active username. For example, if user `Nisarg` is logged in, their solved problems list is stored under `Nisarg_solvedProblems` while another user's is kept under `OtherUser_solvedProblems`. It also handles migrating legacy un-prefixed storage records.
+4. **Theme Adaptation & Observers (`submitEditor.ts` & `injectDashboard.ts`):** Element backgrounds and borders use relative transparency values (`rgba(128, 128, 128, 0.08)`) and inherit theme colors using CSS variables. In `submitEditor.ts`, a `MutationObserver` watches the document `<head>` for stylesheet swaps to toggle color classes natively.
 5. **Background Message Relay (`sync.ts`):** Listens for state update messages from content scripts and updates user-prefixed storage records asynchronously.
+6. **In-page UI Injection (`injectDashboard.ts` & `bookmarks.ts`):** Uses vanilla DOM manipulation to construct and inject the collapsible Progress Dashboard at the top of the main listing, a profile summary on the user's stats page, and star bookmark buttons next to task headings.
 
 ---
 
@@ -192,6 +193,8 @@ chrome.storage.local = {
   "NISARG_07_lastUpdated": 1781603689000
 }
 ```
+
+* **Automatic Migration:** On first load after logging in, the extension automatically migrates any legacy, un-prefixed storage keys (`solvedProblems`, `bookmarks`, `heatmapData`, `lastUpdated`) to the new user-prefixed namespace.
 
 ---
 
