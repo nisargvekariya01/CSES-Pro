@@ -118,36 +118,41 @@ Injected right below the dashboard, these interactive toggles give you powerful 
 
 ## 📁 Project Structure
 
+This is the exact, complete file layout of the CSES Pro project workspace:
+
 ```
 CSES Extension/
-├── dist/                     # Production build output (generated on build)
+├── dist/                      # Bundled Chrome Extension files (auto-generated on build)
 ├── icons/
-│   └── image.png             # Chrome toolbar and store icon
+│   └── image.png              # Extension toolbar / details page icon
 ├── public/
-│   └── icons/                # Extension icons (icon16.png, icon48.png, icon128.png)
+│   └── icons/                 # Subfolders matching manifest.json icon sizes
+│       ├── icon128.png        # 128x128 pixel extension icon
+│       ├── icon16.png         # 16x16 pixel extension icon
+│       └── icon48.png         # 48x48 pixel extension icon
 ├── src/
 │   ├── background/
-│   │   └── sync.ts           # Background service worker message listener
+│   │   └── sync.ts            # Background service worker message relayer and storage sync
 │   ├── content/
-│   │   ├── bookmarks.ts      # Bookmarking button injector and click listener
-│   │   ├── copyBlocks.ts     # In-page Codeforces-style copy button wrapper
-│   │   ├── injectDashboard.ts # In-page dashboard HTML builder and UI injector
-│   │   ├── solvedProblems.ts  # Problem scraping, bookmarks filters, sorting, and random button
-│   │   ├── submitEditor.ts   # Form submission text area and file naming logic
-│   │   └── username.ts       # Active user session detector
+│   │   ├── bookmarks.ts       # Injector for task page bookmarked star button (⭐)
+│   │   ├── copyBlocks.ts      # Injector for Codeforces-style panel headers & Copy buttons
+│   │   ├── injectDashboard.ts # Collapsible dashboard injection, SVG pie chart, and category stats
+│   │   ├── solvedProblems.ts  # Solve scraping, bookmarked task filters, list sorting, and random button
+│   │   ├── submitEditor.ts    # Code textarea injector and form payload processor
+│   │   └── username.ts        # Detection script tracking authentication state
 │   ├── data/
-│   │   └── cses-problems.json # Static mapping of problem IDs to title and category
+│   │   └── cses-problems.json # Index mapping CSES problem IDs to title and category meta
 │   ├── services/
-│   │   ├── parser.ts         # DOM querying helpers for username and solves
-│   │   └── storage.ts        # User-prefixed local storage wrapper (chrome.storage.local)
-│   └── types/                # Type declarations folder (empty)
-├── .gitignore                # Specifies intentionally untracked files to ignore
-├── manifest.json             # Manifest V3 extension configuration
-├── package-lock.json         # Lockfile for exact npm dependency versions
-├── package.json              # Project scripts, description, and devDependencies
-├── tsconfig.json             # TypeScript compiler settings for src
-├── tsconfig.node.json        # TypeScript compiler settings for build configuration
-└── vite.config.ts            # Vite compiler configuration using @crxjs/vite-plugin
+│   │   ├── parser.ts          # Core HTML DOM extraction functions for username and solves
+│   │   └── storage.ts         # User-prefixed local storage accessors and legacy database migration
+│   └── types/                 # Empty directory retained for tsconfig compiler mapping
+├── .gitignore                 # Excludes build output, node_modules, and editor directories from Git
+├── manifest.json              # Chrome Manifest V3 descriptor detailing file matches and script targets
+├── package-lock.json          # Complete lockfile representing exact tree of active npm dependencies
+├── package.json               # Node project metadata, build script definitions, and development modules
+├── tsconfig.json              # Main TypeScript compilation parameters for the src codebase
+├── tsconfig.node.json         # Node compilation environments for configuration files
+└── vite.config.ts             # Bundler specifications wrapping crxjs plugin configurations
 ```
 
 ---
@@ -167,14 +172,16 @@ The extension relies on a clean, modular architecture combining Content Scripts,
 
 ## 📊 Local Storage Data Schema
 
-All data is written to and read from `chrome.storage.local`. Keys are prefixed dynamically:
+All user data is stored inside Google Chrome's local database (`chrome.storage.local`). To isolate data profiles for multiple users, key names are dynamically prefixed with the active username at runtime:
 
 ```javascript
 chrome.storage.local = {
   // Global active session pointer (Type: string | null)
+  // Identifies which user profile is active. If logged out, this is null.
   "username": "NISARG_07",
   
   // User isolated solved problem list (Type: Record<string, boolean>)
+  // Maps solved task ID strings to true status.
   "NISARG_07_solvedProblems": {
     "1068": true,
     "1069": true,
@@ -182,17 +189,21 @@ chrome.storage.local = {
   },
   
   // User bookmarked problems (Type: Record<string, boolean>)
+  // Maps starred task ID strings to true status.
   "NISARG_07_bookmarks": {
     "1068": true
   },
   
-  // Daily solve stats (date string -> solved count) to compute streaks (Type: Record<string, number>)
+  // Daily solve dates and counts (Type: Record<string, number>)
+  // Records the count of solved problems on specific dates.
+  // Note: Although named 'heatmapData' in the codebase to align with background structures,
+  // this is used exclusively to calculate and track your daily solve streaks (current and best streak).
   "NISARG_07_heatmapData": {
     "2026-06-15": 2,
     "2026-06-16": 1
   },
   
-  // Unix timestamp (epoch in ms) of the last local database sync (Type: number)
+  // Unix timestamp of the last local database sync (Type: number)
   "NISARG_07_lastUpdated": 1781603689000
 }
 ```
