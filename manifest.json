@@ -4,11 +4,10 @@
   "version": "1.0.0",
   "description": "Enhance your CSES experience with progress tracking, Codeforces-style features, advanced sorting, and more.",
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
-      "16": "public/icons/icon16.png",
-      "48": "public/icons/icon48.png",
-      "128": "public/icons/icon128.png"
+      "16": "icons/image.png",
+      "48": "icons/image.png",
+      "128": "icons/image.png"
     }
   },
   "background": {
@@ -32,8 +31,8 @@
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "host_permissions": ["*://cses.fi/*"],
   "icons": {
-    "16": "public/icons/icon16.png",
-    "48": "public/icons/icon48.png",
-    "128": "public/icons/icon128.png"
+    "16": "icons/image.png",
+    "48": "icons/image.png",
+    "128": "icons/image.png"
   }
 }

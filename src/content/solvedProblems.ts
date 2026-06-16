@@ -29,15 +29,20 @@ async function run() {
     if (freshCount === 0) return;
 
     const storedSolved = await getSolvedProblems();
+    const storedCount = Object.keys(storedSolved).length;
     const mergedSolved = { ...storedSolved, ...freshSolved };
     await setSolvedProblems(mergedSolved);
 
     const newlySolved = Object.keys(freshSolved).filter((id) => !storedSolved[id]).length;
     if (newlySolved > 0) {
-      const heatmap = await getHeatmapData();
-      heatmap[today] = (heatmap[today] ?? 0) + newlySolved;
-      await setHeatmapData(heatmap);
-      try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: mergedSolved, heatmap } }); } catch { /* ok */ }
+      if (storedCount > 0) {
+        const heatmap = await getHeatmapData();
+        heatmap[today] = (heatmap[today] ?? 0) + newlySolved;
+        await setHeatmapData(heatmap);
+        try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: mergedSolved, heatmap } }); } catch { /* ok */ }
+      } else {
+        try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: mergedSolved } }); } catch { /* ok */ }
+      }
     } else {
       try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: mergedSolved } }); } catch { /* ok */ }
     }
@@ -244,12 +249,19 @@ async function run() {
     if (!isSolved) return;
     const storedSolved = await getSolvedProblems();
     if (storedSolved[problemId]) return;
+    const storedCount = Object.keys(storedSolved).length;
+    
     storedSolved[problemId] = true;
     await setSolvedProblems(storedSolved);
-    const heatmap = await getHeatmapData();
-    heatmap[today] = (heatmap[today] ?? 0) + 1;
-    await setHeatmapData(heatmap);
-    try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: storedSolved, heatmap } }); } catch { /* ok */ }
+    
+    if (storedCount > 0) {
+      const heatmap = await getHeatmapData();
+      heatmap[today] = (heatmap[today] ?? 0) + 1;
+      await setHeatmapData(heatmap);
+      try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: storedSolved, heatmap } }); } catch { /* ok */ }
+    } else {
+      try { chrome.runtime.sendMessage({ type: 'UPDATE_SOLVED', payload: { solved: storedSolved } }); } catch { /* ok */ }
+    }
   }
 }
 

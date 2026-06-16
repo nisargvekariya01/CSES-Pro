@@ -3,7 +3,6 @@ import { RefreshCw, User, Code2, Flame, Trophy, Star, BarChart3, Scan, AlertCirc
 import { UserStats } from '../services/storage';
 import csesProblems from '../data/cses-problems.json';
 import SolvedPieChart from './PieChart';
-import HeatmapSection from './Heatmap';
 import TopicProgress from './TopicProgress';
 import MarkedProblems from './MarkedProblems';
 
@@ -114,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
               isEmpty ? 'bg-brand-500/20 border border-brand-500/40' : 'bg-slate-700/60 border border-slate-600/40'
             }`}>
-              <Scan size={13} className={scanning ? 'animate-pulse text-brand-400' : isEmpty ? 'text-brand-400' : 'text-slate-400'} />
+              <RefreshCw size={13} className={scanning ? 'animate-spin text-brand-400' : isEmpty ? 'text-brand-400' : 'text-slate-400'} />
             </div>
             <div className="flex-1 text-left">
               {scanStatus ? (
@@ -124,10 +123,10 @@ const Dashboard: React.FC<DashboardProps> = ({
               ) : (
                 <>
                   <p className="text-xs font-semibold text-slate-200">
-                    {scanning ? 'Scanning page...' : isEmpty ? 'Scan CSES page now' : 'Scan for updates'}
+                    {scanning ? 'Syncing...' : isEmpty ? 'Sync with CSES now' : 'Sync data from CSES'}
                   </p>
                   <p className="text-[10px] text-slate-500 mt-0.5">
-                    {isEmpty ? 'Open cses.fi/problemset/list then click here' : 'Click while on cses.fi/problemset/list'}
+                    {isEmpty ? 'Click here to download your solved problems' : 'Click to fetch your latest progress'}
                   </p>
                 </>
               )}
@@ -219,8 +218,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         {activeTab === 'overview' && (
           <>
             <SolvedPieChart solved={solvedCount} unsolved={unsolvedCount} total={totalCount} />
-            <div className="section-divider" />
-            <HeatmapSection heatmapData={stats.heatmapData} />
           </>
         )}
         {activeTab === 'topics' && <TopicProgress solvedProblems={stats.solvedProblems} />}

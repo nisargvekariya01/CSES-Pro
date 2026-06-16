@@ -43,37 +43,7 @@ html, body {
   border-radius: 999px;
 }
 
-/* ── react-calendar-heatmap overrides ────────────────────────────────────── */
-.react-calendar-heatmap text {
-  font-size: 6px;
-  fill: #64748b;
-  font-family: 'Inter', sans-serif;
-}
 
-.react-calendar-heatmap rect:hover {
-  stroke: #22c55e;
-  stroke-width: 1px;
-}
-
-.color-empty {
-  fill: #1e293b;
-}
-
-.color-scale-1 {
-  fill: #14532d;
-}
-
-.color-scale-2 {
-  fill: #166534;
-}
-
-.color-scale-3 {
-  fill: #15803d;
-}
-
-.color-scale-4 {
-  fill: #22c55e;
-}
 
 /* ── Animations ───────────────────────────────────────────────────────────── */
 @keyframes shimmer {
@@ -88,18 +58,7 @@ html, body {
   border-radius: 6px;
 }
 
-/* ── Tooltip ──────────────────────────────────────────────────────────────── */
-.heatmap-tooltip {
-  background: #1e293b !important;
-  border: 1px solid #334155 !important;
-  border-radius: 8px !important;
-  color: #f1f5f9 !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: 12px !important;
-  padding: 6px 10px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-  z-index: 9999 !important;
-}
+
 
 /* ── Progress bar ─────────────────────────────────────────────────────────── */
 .progress-bar {

@@ -1,4 +1,4 @@
-import{e as c}from"./parser-CDGgk22_.js";import{e as d,t as m}from"./storage-39e_FlVG.js";async function k(){const r=window.location.href;if(!r.includes("/problemset/task/"))return;const t=c(r);if(!t||document.getElementById("cses-bookmark-btn"))return;const n=document.querySelector(".title-block h1")??document.querySelector("h1");if(!n)return;const l=await d(),e=document.createElement("button");e.id="cses-bookmark-btn";const i=`
+import{e as c}from"./parser-CDGgk22_.js";import{g as d,t as m}from"./storage-3fLFYjv2.js";async function k(){const r=window.location.href;if(!r.includes("/problemset/task/"))return;const t=c(r);if(!t||document.getElementById("cses-bookmark-btn"))return;const n=document.querySelector(".title-block h1")??document.querySelector("h1");if(!n)return;const l=await d(),e=document.createElement("button");e.id="cses-bookmark-btn";const i=`
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" 
       fill="var(--star-fill, none)" stroke="var(--star-stroke, currentColor)" 
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block">

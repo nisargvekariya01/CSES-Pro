@@ -93,7 +93,7 @@ function run() {
     copyBtn.textContent = 'Copy';
     
     copyBtn.addEventListener('click', () => {
-      const code = pre.textContent || '';
+      const code = (pre.textContent || '').trimEnd();
       navigator.clipboard.writeText(code).then(() => {
         copyBtn.textContent = 'Copied!';
         setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);

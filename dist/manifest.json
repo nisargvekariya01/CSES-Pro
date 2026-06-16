@@ -4,11 +4,10 @@
   "version": "1.0.0",
   "description": "Enhance your CSES experience with progress tracking, Codeforces-style features, advanced sorting, and more.",
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
-      "16": "public/icons/icon16.png",
-      "48": "public/icons/icon48.png",
-      "128": "public/icons/icon128.png"
+      "16": "icons/image.png",
+      "48": "icons/image.png",
+      "128": "icons/image.png"
     }
   },
   "background": {
@@ -18,12 +17,12 @@
   "content_scripts": [
     {
       "js": [
-        "assets/username.ts-loader-DcoepsbT.js",
-        "assets/solvedProblems.ts-loader-D7xQ3I7j.js",
-        "assets/bookmarks.ts-loader-BhPdlJMs.js",
-        "assets/injectDashboard.ts-loader-C0Wd2uoe.js",
+        "assets/username.ts-loader-C07u2fRt.js",
+        "assets/solvedProblems.ts-loader-BiVv9Eo6.js",
+        "assets/bookmarks.ts-loader-CAnaWi9E.js",
+        "assets/injectDashboard.ts-loader-CZDV5B7g.js",
         "assets/submitEditor.ts-loader-CXskSyVu.js",
-        "assets/copyBlocks.ts-loader-BIzRgpNP.js"
+        "assets/copyBlocks.ts-loader-EnDG_kB7.js"
       ],
       "matches": [
         "*://cses.fi/*"
@@ -41,9 +40,9 @@
     "*://cses.fi/*"
   ],
   "icons": {
-    "16": "public/icons/icon16.png",
-    "48": "public/icons/icon48.png",
-    "128": "public/icons/icon128.png"
+    "16": "icons/image.png",
+    "48": "icons/image.png",
+    "128": "icons/image.png"
   },
   "web_accessible_resources": [
     {
@@ -52,14 +51,13 @@
       ],
       "resources": [
         "assets/parser-CDGgk22_.js",
-        "assets/storage-39e_FlVG.js",
-        "assets/username.ts-DFdXV1va.js",
-        "assets/solvedProblems.ts-ChlWXIf8.js",
-        "assets/bookmarks.ts-CfmkRqez.js",
-        "assets/cses-problems-BDV4gcZH.js",
-        "assets/injectDashboard.ts-DDeMvplE.js",
+        "assets/storage-3fLFYjv2.js",
+        "assets/username.ts-C0N937tn.js",
+        "assets/solvedProblems.ts-v5ydPmCB.js",
+        "assets/bookmarks.ts-FV8YT_Pw.js",
+        "assets/injectDashboard.ts-Duzc1jEG.js",
         "assets/submitEditor.ts-CBqGn-C8.js",
-        "assets/copyBlocks.ts-CD-FJEwo.js"
+        "assets/copyBlocks.ts-t29McPee.js"
       ],
       "use_dynamic_url": false
     }

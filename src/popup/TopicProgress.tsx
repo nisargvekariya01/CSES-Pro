@@ -28,7 +28,14 @@ const CATEGORY_ORDER = [
   'String Algorithms',
   'Geometry',
   'Advanced Techniques',
-  'Additional Problems',
+  'Sliding Window Problems',
+  'Interactive Problems',
+  'Bitwise Operations',
+  'Construction Problems',
+  'Advanced Graph Problems',
+  'Counting Problems',
+  'Additional Problems I',
+  'Additional Problems II',
 ];
 
 // ─── Color mapping ─────────────────────────────────────────────────────────────
@@ -44,7 +51,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   'String Algorithms': '#ec4899',
   'Geometry': '#14b8a6',
   'Advanced Techniques': '#f43f5e',
-  'Additional Problems': '#64748b',
+  'Sliding Window Problems': '#6366f1',
+  'Interactive Problems': '#8b5cf6',
+  'Bitwise Operations': '#d946ef',
+  'Construction Problems': '#10b981',
+  'Advanced Graph Problems': '#ea580c',
+  'Counting Problems': '#0ea5e9',
+  'Additional Problems I': '#64748b',
+  'Additional Problems II': '#475569',
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────

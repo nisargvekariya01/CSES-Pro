@@ -17,7 +17,14 @@ const CATEGORY_ORDER = [
   'String Algorithms',
   'Geometry',
   'Advanced Techniques',
-  'Additional Problems',
+  'Sliding Window Problems',
+  'Interactive Problems',
+  'Bitwise Operations',
+  'Construction Problems',
+  'Advanced Graph Problems',
+  'Counting Problems',
+  'Additional Problems I',
+  'Additional Problems II',
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -104,119 +111,10 @@ function buildPieChart(solved: number, total: number, dark: boolean): string {
   </div>`;
 }
 
-// ─── 365-day Codeforces-style Heatmap (SVG) ───────────────────────────────────
-
-function buildYearHeatmap(heatmapData: Record<string, number>, dark: boolean): string {
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const DAY_LABELS = ['','M','','W','','F',''];
-
-  // Color scales
-  const colors = dark
-    ? ['#1e293b', '#14532d', '#166534', '#16a34a', '#22c55e']
-    : ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
-
-  const textColor = dark ? '#94a3b8' : '#767676';
-
-  // Build date range: align to the Sunday of the week containing (today − 364 days)
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const yearAgo = new Date(today.getTime() - 364 * 86400000);
-  const startDow = yearAgo.getDay(); // 0 = Sunday
-  const startDate = new Date(yearAgo.getTime() - startDow * 86400000);
-
-  // Build week columns
-  type Cell = { dateStr: string; count: number; inRange: boolean } | null;
-  const weeks: Cell[][] = [];
-  const cur = new Date(startDate);
-  while (cur <= today) {
-    const week: Cell[] = [];
-    for (let d = 0; d < 7; d++) {
-      const inRange = cur >= yearAgo && cur <= today;
-      const ds = toDateStr(cur);
-      week.push({ dateStr: ds, count: heatmapData[ds] ?? 0, inRange });
-      cur.setDate(cur.getDate() + 1);
-    }
-    weeks.push(week);
-  }
-
-  // Cell geometry
-  const CELL = 13;
-  const GAP = 2;
-  const STEP = CELL + GAP;
-  const LEFT_PAD = 22; // day labels width
-  const TOP_PAD = 18;  // month labels height
-
-  const svgW = LEFT_PAD + weeks.length * STEP;
-  const svgH = TOP_PAD + 7 * STEP;
-
-  // Month label positions — label appears at the first week of each month
-  const monthLabels: { x: number; label: string }[] = [];
-  let lastMonth = -1;
-  for (let w = 0; w < weeks.length; w++) {
-    const firstCell = weeks[w].find((c) => c !== null);
-    if (!firstCell) continue;
-    const d = new Date(firstCell.dateStr + 'T00:00:00');
-    if (d.getMonth() !== lastMonth) {
-      monthLabels.push({ x: LEFT_PAD + w * STEP, label: MONTHS[d.getMonth()] });
-      lastMonth = d.getMonth();
-    }
-  }
-
-  // Build SVG
-  let cellsSVG = '';
-  for (let w = 0; w < weeks.length; w++) {
-    for (let d = 0; d < 7; d++) {
-      const cell = weeks[w][d];
-      if (!cell) continue;
-      const x = LEFT_PAD + w * STEP;
-      const y = TOP_PAD + d * STEP;
-      let ci = 0;
-      if (cell.inRange) {
-        const cnt = cell.count;
-        if (cnt === 0) ci = 0;
-        else if (cnt === 1) ci = 1;
-        else if (cnt <= 3) ci = 2;
-        else if (cnt <= 6) ci = 3;
-        else ci = 4;
-      }
-      const tooltip = cell.inRange
-        ? `${cell.dateStr}: ${cell.count === 0 ? 'No activity' : `${cell.count} solved`}`
-        : '';
-      cellsSVG += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${colors[ci]}">${tooltip ? `<title>${tooltip}</title>` : ''}</rect>`;
-    }
-  }
-
-  // Month labels SVG
-  const monthSVG = monthLabels
-    .map(({ x, label }) => `<text x="${x}" y="${TOP_PAD - 4}" font-size="10" fill="${textColor}" font-family="inherit">${label}</text>`)
-    .join('');
-
-  // Day labels (M, W, F only)
-  const daySVG = DAY_LABELS.map((lbl, d) =>
-    lbl ? `<text x="${LEFT_PAD - 4}" y="${TOP_PAD + d * STEP + CELL - 2}" font-size="9" fill="${textColor}" text-anchor="end" font-family="inherit">${lbl}</text>` : ''
-  ).join('');
-
-  // Legend
-  const legendX = LEFT_PAD;
-  const legendY = TOP_PAD + 7 * STEP + 10;
-  const legendSVG = `
-    <text x="${legendX}" y="${legendY + 10}" font-size="9" fill="${textColor}" font-family="inherit">Less</text>
-    ${[0,1,2,3,4].map((i, idx) => `<rect x="${legendX + 28 + idx * (CELL + 2)}" y="${legendY}" width="${CELL}" height="${CELL}" rx="2" fill="${colors[i]}"/>`).join('')}
-    <text x="${legendX + 28 + 5 * (CELL + 2) + 2}" y="${legendY + 10}" font-size="9" fill="${textColor}" font-family="inherit">More</text>
-  `;
-
-  const totalSvgH = svgH + 28;
-  return `
-  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-    <svg width="${svgW}" height="${totalSvgH}" viewBox="0 0 ${svgW} ${totalSvgH}" style="min-width:${svgW}px;display:block">
-      ${monthSVG}
-      ${daySVG}
-      ${cellsSVG}
-      ${legendSVG}
-    </svg>
-  </div>`;
-}
 
 // ─── Streak calc ──────────────────────────────────────────────────────────────
+
+
 
 function calcStreaks(heatmap: Record<string, number>): { cur: number; best: number } {
   const dates = Object.keys(heatmap).filter((d) => (heatmap[d] ?? 0) > 0).sort();
@@ -247,7 +145,7 @@ function calcStreaks(heatmap: Record<string, number>): { cur: number; best: numb
 
 // ─── Render full dashboard HTML ───────────────────────────────────────────────
 
-async function renderDashboard(): Promise<string> {
+export async function renderDashboard(): Promise<string> {
   const stats = await getUserStats();
   const { username, solvedProblems, heatmapData } = stats;
   const dark = isDarkMode();
@@ -454,7 +352,40 @@ async function injectDashboardDropdown() {
   });
 }
 
+async function injectUserPageHeatmap() {
+  const path = window.location.pathname;
+  if (!path.startsWith('/user/')) return;
+  
+  const content = document.querySelector<HTMLElement>('.content');
+  if (!content) return;
+
+  // Find the 'User information' header
+  const h2s = Array.from(content.querySelectorAll('h2'));
+  const userInfoH2 = h2s.find(h => h.textContent?.includes('User information'));
+  if (!userInfoH2) return;
+  
+  // The table is usually immediately after the h2
+  const userInfoTable = userInfoH2.nextElementSibling;
+  if (!userInfoTable || userInfoTable.tagName !== 'TABLE') return;
+
+  if (document.getElementById('cses-user-dashboard-injected')) return;
+
+  const html = await renderDashboard();
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'cses-user-dashboard-injected';
+  wrapper.style.margin = '32px 0';
+  wrapper.innerHTML = `
+    <h2>Local Dashboard</h2>
+    ${html}
+  `;
+  
+  // Insert after the User information table
+  userInfoTable.parentNode?.insertBefore(wrapper, userInfoTable.nextSibling);
+}
+
 export function onExecute() {
   injectDashboardDropdown();
+  injectUserPageHeatmap();
 }
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { getUserStats, UserStats, setUsername, setSolvedProblems, getHeatmapData, setHeatmapData, setLastUpdated } from '../services/storage';
+import { getUserStats, UserStats, setUsername, setSolvedProblems, setLastUpdated, getHeatmapData, setHeatmapData } from '../services/storage';
 import { scanActiveTab } from '../services/scanner';
+import { extractUsername, extractSolvedProblems } from '../services/parser';
 import Dashboard from './Dashboard';
 
 // ─── Streak Calculator ────────────────────────────────────────────────────────
@@ -74,34 +75,37 @@ const App: React.FC = () => {
     return () => chrome.storage.onChanged.removeListener(handler);
   }, [loadStats]);
 
-  // ── Scan current tab ───────────────────────────────────────────────────────
+  // ── Sync with CSES Server ──────────────────────────────────────────────────
   const handleScan = useCallback(async () => {
     setScanning(true);
-    setScanStatus('Scanning...');
+    setScanStatus('Syncing from CSES...');
     try {
-      const result = await scanActiveTab();
-
-      if (!result.url.includes('cses.fi')) {
-        setScanStatus('⚠ Please open cses.fi first');
+      const res = await fetch('https://cses.fi/problemset/list/');
+      if (!res.ok) {
+        setScanStatus('⚠ Failed to fetch data');
         return;
       }
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
 
+      const username = extractUsername(doc);
       let changed = false;
 
-      // Persist username
-      if (result.username) {
-        await setUsername(result.username);
+      if (username) {
+        await setUsername(username);
         changed = true;
       }
 
-      // Persist solved problems
-      if (result.isListPage && Object.keys(result.solved).length > 0) {
+      const freshSolved = extractSolvedProblems(doc);
+      if (Object.keys(freshSolved).length > 0) {
         const stored = stats?.solvedProblems ?? {};
-        const merged = { ...stored, ...result.solved };
-        const newCount = Object.keys(result.solved).filter((id) => !stored[id]).length;
+        const merged = { ...stored, ...freshSolved };
+        const storedCount = Object.keys(stored).length;
+        const newCount = Object.keys(freshSolved).filter((id) => !stored[id]).length;
         await setSolvedProblems(merged);
 
-        if (newCount > 0) {
+        if (newCount > 0 && storedCount > 0) {
           const today = new Date();
           const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
           const heatmap = await getHeatmapData();
@@ -109,21 +113,19 @@ const App: React.FC = () => {
           await setHeatmapData(heatmap);
         }
 
-        setScanStatus(`✓ Found ${Object.keys(result.solved).length} solved problems`);
+        setScanStatus(`✓ Synced ${Object.keys(freshSolved).length} problems`);
         changed = true;
-      } else if (!result.isListPage && result.url.includes('cses.fi')) {
-        setScanStatus('⚠ Go to cses.fi/problemset/list then scan');
-      } else if (result.isListPage && Object.keys(result.solved).length === 0) {
-        setScanStatus('No solved problems found (are you logged in?)');
+      } else {
+        setScanStatus('⚠ No solved problems (Not logged in?)');
       }
 
       if (changed) {
         await setLastUpdated();
         await loadStats();
-        if (!scanStatus.startsWith('⚠')) setScanStatus('✓ Dashboard updated!');
+        if (!scanStatus.startsWith('⚠')) setScanStatus('✓ Dashboard synced!');
       }
     } catch (err) {
-      console.error('[CSES Dashboard] Scan failed:', err);
+      console.error('[CSES Dashboard] Sync failed:', err);
       setScanStatus('Error — check permissions');
     } finally {
       setScanning(false);

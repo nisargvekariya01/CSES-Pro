@@ -19,26 +19,40 @@ export interface StorageData {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function storageGet<T>(keys: string | string[]): Promise<T> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get(keys, (result) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(result as T);
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.get(keys, (result) => {
+        if (chrome.runtime.lastError) {
+          console.warn('Storage error:', chrome.runtime.lastError);
+          resolve({} as T);
+        } else {
+          resolve(result as T);
+        }
+      });
+    } catch (e: any) {
+      if (e.message && e.message.includes('Extension context invalidated')) {
+        console.warn('Extension context invalidated. Please refresh the page.');
       }
-    });
+      resolve({} as T);
+    }
   });
 }
 
 function storageSet(data: Record<string, unknown>): Promise<void> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set(data, () => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.set(data, () => {
+        if (chrome.runtime.lastError) {
+          console.warn('Storage error:', chrome.runtime.lastError);
+        }
         resolve();
+      });
+    } catch (e: any) {
+      if (e.message && e.message.includes('Extension context invalidated')) {
+        console.warn('Extension context invalidated. Please refresh the page.');
       }
-    });
+      resolve();
+    }
   });
 }
 
@@ -94,6 +108,7 @@ export async function toggleBookmark(problemId: string): Promise<boolean> {
   }
 }
 
+
 // ─── Heatmap Data ────────────────────────────────────────────────────────────
 
 export async function getHeatmapData(): Promise<Record<string, number>> {
@@ -103,15 +118,6 @@ export async function getHeatmapData(): Promise<Record<string, number>> {
 
 export async function setHeatmapData(data: Record<string, number>): Promise<void> {
   await storageSet({ heatmapData: data });
-}
-
-export async function incrementHeatmapDate(
-  dateStr: string,
-  count: number = 1
-): Promise<void> {
-  const current = await getHeatmapData();
-  current[dateStr] = (current[dateStr] ?? 0) + count;
-  await storageSet({ heatmapData: current });
 }
 
 // ─── Aggregated Stats ─────────────────────────────────────────────────────────
