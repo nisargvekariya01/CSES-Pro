@@ -120,11 +120,11 @@ Injected right below the dashboard, these interactive toggles give you powerful 
 
 ```
 CSES Extension/
-├── dist/                     # Bundled, ready-to-load Chrome Extension assets (generated on build)
+├── dist/                     # Production build output (generated on build)
 ├── icons/
-│   └── image.png             # Adaptive extension logo
+│   └── image.png             # Chrome toolbar and store icon
 ├── public/
-│   └── icons/                # High-res extension icons (icon16.png, icon48.png, icon128.png)
+│   └── icons/                # Extension icons (icon16.png, icon48.png, icon128.png)
 ├── src/
 │   ├── background/
 │   │   └── sync.ts           # Background service worker message listener
@@ -140,11 +140,14 @@ CSES Extension/
 │   ├── services/
 │   │   ├── parser.ts         # DOM querying helpers for username and solves
 │   │   └── storage.ts        # User-prefixed local storage wrapper (chrome.storage.local)
-│   └── types/                # TypeScript declaration folder (retained for compiler paths)
+│   └── types/                # Type declarations folder (empty)
+├── .gitignore                # Specifies intentionally untracked files to ignore
 ├── manifest.json             # Manifest V3 extension configuration
-├── package.json              # Node.js dependencies and scripts
-├── tsconfig.json             # TypeScript rules configuration
-└── vite.config.ts            # Vite compiler configuration utilizing @crxjs/vite-plugin
+├── package-lock.json         # Lockfile for exact npm dependency versions
+├── package.json              # Project scripts, description, and devDependencies
+├── tsconfig.json             # TypeScript compiler settings for src
+├── tsconfig.node.json        # TypeScript compiler settings for build configuration
+└── vite.config.ts            # Vite compiler configuration using @crxjs/vite-plugin
 ```
 
 ---
@@ -168,28 +171,28 @@ All data is written to and read from `chrome.storage.local`. Keys are prefixed d
 
 ```javascript
 chrome.storage.local = {
-  // Global active session pointer
+  // Global active session pointer (Type: string | null)
   "username": "NISARG_07",
   
-  // User isolated solved problem list
+  // User isolated solved problem list (Type: Record<string, boolean>)
   "NISARG_07_solvedProblems": {
     "1068": true,
     "1069": true,
     "1070": true
   },
   
-  // User bookmarked problems
+  // User bookmarked problems (Type: Record<string, boolean>)
   "NISARG_07_bookmarks": {
     "1068": true
   },
   
-  // Daily solve stats (date string -> solved count) to compute streaks
+  // Daily solve stats (date string -> solved count) to compute streaks (Type: Record<string, number>)
   "NISARG_07_heatmapData": {
     "2026-06-15": 2,
     "2026-06-16": 1
   },
   
-  // Unix timestamp of the last local database sync
+  // Unix timestamp (epoch in ms) of the last local database sync (Type: number)
   "NISARG_07_lastUpdated": 1781603689000
 }
 ```
