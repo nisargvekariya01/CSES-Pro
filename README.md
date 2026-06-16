@@ -125,11 +125,6 @@ CSES Extension/
 ├── dist/                      # Bundled Chrome Extension files (auto-generated on build)
 ├── icons/
 │   └── image.png              # Extension toolbar / details page icon
-├── public/
-│   └── icons/                 # Subfolders matching manifest.json icon sizes
-│       ├── icon128.png        # 128x128 pixel extension icon
-│       ├── icon16.png         # 16x16 pixel extension icon
-│       └── icon48.png         # 48x48 pixel extension icon
 ├── src/
 │   ├── background/
 │   │   └── sync.ts            # Background service worker message relayer and storage sync
