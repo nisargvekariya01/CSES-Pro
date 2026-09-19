@@ -326,20 +326,34 @@ async function run() {
 
   // ── Extract the CSES problem navigation (TASK|SUBMIT|RESULTS|... tabs) ─────
   // On CSES problem pages, the nav is either inside .content or a sibling of it.
-  const csesNavEl =
-    contentEl.querySelector<HTMLElement>('.nav') ??
-    document.querySelector<HTMLElement>('.nav') ??
-    (() => {
-      // Fallback: find by sibling links containing /task/, /submit/
-      const allLinks = document.querySelectorAll<HTMLAnchorElement>('a[href]');
-      for (const a of allLinks) {
-        if (/\/(task|submit|result|statistics|analysis)\//.test(a.href)) {
-          const p = a.parentElement;
-          if (p && p !== document.body) return p;
+  let csesNavEl = 
+    document.querySelector<HTMLElement>('.title-block .nav') ?? 
+    document.querySelector<HTMLElement>('.navigation .nav');
+
+  if (!csesNavEl) {
+    const allNavs = document.querySelectorAll<HTMLElement>('.nav');
+    for (const nav of Array.from(allNavs)) {
+      const txt = nav.textContent || '';
+      if (txt.includes('Task') || txt.includes('Submit') || txt.includes('Results')) {
+        csesNavEl = nav;
+        break;
+      }
+    }
+  }
+
+  if (!csesNavEl) {
+    // Fallback: find by sibling links containing /task/, /submit/
+    const allLinks = document.querySelectorAll<HTMLAnchorElement>('a[href]');
+    for (const a of Array.from(allLinks)) {
+      if (/\/(task|submit|result|statistics|analysis)\//.test(a.href)) {
+        const p = a.parentElement;
+        if (p && p !== document.body && p.classList.contains('nav')) {
+          csesNavEl = p;
+          break;
         }
       }
-      return null;
-    })();
+    }
+  }
 
   if (csesNavEl) {
     // Remove the "SUBMIT" option since our Code Editor handles submission directly
