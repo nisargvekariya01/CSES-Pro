@@ -21,6 +21,9 @@ interface WandboxConfig {
 }
 
 const WANDBOX_CONFIGS: Record<string, WandboxConfig> = {
+  'Assembly': {
+    compiler: 'nasm-head',
+  },
   'C++17': {
     compiler: 'gcc-head',
     compilerOptionRaw: '-std=c++17 -O2 -Wall',
@@ -32,6 +35,9 @@ const WANDBOX_CONFIGS: Record<string, WandboxConfig> = {
   'C11': {
     compiler: 'gcc-head',
     compilerOptionRaw: '-std=c11 -O2 -Wall',
+  },
+  'Haskell': {
+    compiler: 'ghc-head',
   },
   'Python3': {
     compiler: 'cpython-3.12.0',
@@ -48,8 +54,14 @@ const WANDBOX_CONFIGS: Record<string, WandboxConfig> = {
   'JavaScript': {
     compiler: 'nodejs-head',
   },
+  'Pascal': {
+    compiler: 'fpc-head',
+  },
   'Ruby': {
     compiler: 'ruby-head',
+  },
+  'Scala': {
+    compiler: 'scala-head',
   },
 };
 
@@ -79,10 +91,14 @@ function findWandboxConfig(lang: string): WandboxConfig | null {
 
   // 2. Fuzzy match by language family
   const l = lang.toLowerCase().trim();
-  if (l.includes('python') || l.startsWith('py'))                       return WANDBOX_CONFIGS['Python3'];
+  if (l.includes('assembly') || l.includes('asm'))                       return WANDBOX_CONFIGS['Assembly'];
+  if (l.includes('haskell'))                                             return WANDBOX_CONFIGS['Haskell'];
+  if (l.includes('pascal'))                                              return WANDBOX_CONFIGS['Pascal'];
+  if (l.includes('scala'))                                               return WANDBOX_CONFIGS['Scala'];
+  if (l.includes('python') || l.startsWith('py'))                        return WANDBOX_CONFIGS['Python3'];
   if ((l.includes('java') && !l.includes('javascript')))                 return WANDBOX_CONFIGS['Java'];
   if (l.includes('rust'))                                                return WANDBOX_CONFIGS['Rust'];
-  if (l.includes('javascript') || l.includes('node') || l === 'js')     return WANDBOX_CONFIGS['JavaScript'];
+  if (l.includes('javascript') || l.includes('node') || l === 'js')      return WANDBOX_CONFIGS['JavaScript'];
   if (l.includes('ruby') || l === 'rb')                                  return WANDBOX_CONFIGS['Ruby'];
   if (l.includes('c++20') || l.includes('cpp20') || l.includes('c++ 20')) return WANDBOX_CONFIGS['C++20'];
   // Generic C++ (no version specified) → default to C++17

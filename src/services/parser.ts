@@ -102,22 +102,26 @@ export function extractSolvedProblems(doc: Document): Record<string, boolean> {
  * e.g. https://cses.fi/problemset/task/1635 → "1635"
  */
 export function extractProblemIdFromUrl(url: string, doc?: Document): string | null {
-  // First try to match the problem ID directly from standard tabs
-  // Tabs: task, submit, view, stats, statistics, analysis
-  const directMatch = url.match(/\/(?:task|submit|view|stats|statistics|analysis)\/(\d+)/);
-  if (directMatch?.[1]) {
-    return directMatch[1];
+  if (doc) {
+    // The most reliable way to find the problem ID on ANY problem-related page
+    // (including specific submissions, tests, queue, analysis) is to look at the
+    // problem's navigation tab bar which always contains a link back to the task.
+    const navTaskLink = doc.querySelector<HTMLAnchorElement>('.nav a[href*="/task/"]');
+    if (navTaskLink) {
+      const match = navTaskLink.href.match(/\/task\/(\d+)/);
+      if (match?.[1]) {
+        return match[1];
+      }
+    }
   }
 
-  // If on a /result/ or /hack/ page, the number in the URL is a submission/hack ID, not problem ID.
-  // Instead, look for the task link in the page (e.g. "Task: Weird Algorithm")
-  if (doc) {
-    const taskLink = doc.querySelector<HTMLAnchorElement>('a[href*="/problemset/task/"]');
-    if (taskLink) {
-      const linkMatch = taskLink.href.match(/\/task\/(\d+)/);
-      if (linkMatch?.[1]) {
-        return linkMatch[1];
-      }
+  // Fallback: match the problem ID directly from standard tab URLs 
+  // if the DOM isn't available or the nav is missing.
+  const directMatch = url.match(/\/(?:task|submit|view|stats|statistics|analysis|tests|queue)\/(\d+)/);
+  if (directMatch?.[1]) {
+    // Avoid returning a submission ID instead of a problem ID for result/hack pages
+    if (!url.includes('/result/') && !url.includes('/hack/')) {
+      return directMatch[1];
     }
   }
 

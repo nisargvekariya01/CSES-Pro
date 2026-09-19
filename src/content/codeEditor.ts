@@ -34,7 +34,32 @@ interface EditorState_Local {
 const FALLBACK_LANGUAGES = ['C++17', 'C++20', 'Python3', 'Java', 'Rust'];
 
 const DEFAULT_CODE: Record<string, string> = {
-  'C++17': `#include <bits/stdc++.h>
+  'Assembly': `; Assembly (x86_64) starter
+section .data
+    msg db 'Hello, World!', 10
+    len equ $ - msg
+
+section .text
+    global _start
+
+_start:
+    ; your code here
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg
+    mov rdx, len
+    syscall
+
+    mov rax, 60
+    xor rdi, rdi
+    syscall`,
+  'C': `#include <stdio.h>
+
+int main() {
+    // your code here
+    return 0;
+}`,
+  'C++': `#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
@@ -45,25 +70,10 @@ int main() {
     
     return 0;
 }`,
-  'C++20': `#include <bits/stdc++.h>
-using namespace std;
-
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    
-    // your code here
-    
-    return 0;
-}`,
-  'Python3': `import sys
-input = sys.stdin.readline
-
-def main():
-    # your code here
-    pass
-
-main()`,
+  'Haskell': `main :: IO ()
+main = do
+    -- your code here
+    return ()`,
   'Java': `import java.util.*;
 import java.io.*;
 
@@ -74,6 +84,32 @@ public class solution {
         // your code here
     }
 }`,
+  'Node.js': `const fs = require('fs');
+
+function main() {
+    const input = fs.readFileSync('/dev/stdin', 'utf-8').trim().split(/\\s+/);
+    // your code here
+}
+
+main();`,
+  'Pascal': `program Solution;
+begin
+    // your code here
+end.`,
+  'Python3': `import sys
+input = sys.stdin.read
+
+def main():
+    # your code here
+    pass
+
+if __name__ == '__main__':
+    main()`,
+  'Ruby': `def main
+  # your code here
+end
+
+main`,
   'Rust': `use std::io::{self, BufRead, Write};
 
 fn main() {
@@ -83,6 +119,11 @@ fn main() {
     
     // your code here
 }`,
+  'Scala': `object Solution {
+  def main(args: Array[String]): Unit = {
+    // your code here
+  }
+}`
 };
 
 const STORAGE_KEY_PREFIX = 'cses-editor-';
@@ -90,8 +131,23 @@ const STORAGE_KEY_PREFIX = 'cses-editor-';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isDark(): boolean {
+  try {
+    const darkFlag = document.getElementById('darkmode-enabled');
+    if (darkFlag) {
+      return darkFlag.textContent?.trim() === 'true';
+    }
+  } catch(e) {}
+  
   const darkSheet = document.getElementById('styles-dark') as HTMLLinkElement | null;
-  return darkSheet?.rel === 'stylesheet';
+  if (darkSheet) {
+    return darkSheet.rel === 'stylesheet' || !darkSheet.rel.includes('alternate');
+  }
+  
+  if (document.body && (document.body.classList.contains('dark') || document.body.classList.contains('dark-theme'))) {
+    return true;
+  }
+  
+  return false;
 }
 
 // Fuzzy-match a CSES language value/text to the right CodeMirror language extension
@@ -106,13 +162,20 @@ function getLanguageExtension(lang: string) {
 
 // Fuzzy-match a CSES language value/text to a starter code template
 function getTemplateForLang(lang: string): string {
-  const l = lang.toLowerCase();
+  const l = lang.toLowerCase().trim();
+  if (l.includes('assembly') || l.includes('asm'))                return DEFAULT_CODE['Assembly'];
+  if (l.includes('haskell'))                                      return DEFAULT_CODE['Haskell'];
+  if (l.includes('node') || l.includes('js') || l.includes('javascript')) return DEFAULT_CODE['Node.js'];
+  if (l.includes('pascal'))                                       return DEFAULT_CODE['Pascal'];
+  if (l.includes('ruby'))                                         return DEFAULT_CODE['Ruby'];
+  if (l.includes('scala'))                                        return DEFAULT_CODE['Scala'];
   if (l.includes('python') || l.includes('py'))                   return DEFAULT_CODE['Python3'];
   if (l.includes('java') && !l.includes('javascript'))            return DEFAULT_CODE['Java'];
   if (l.includes('rust'))                                         return DEFAULT_CODE['Rust'];
-  if (l.includes('c++20') || l.includes('cpp20'))                 return DEFAULT_CODE['C++20'];
-  // Default: C++17 template works for C++17, C++20, C, etc.
-  return DEFAULT_CODE['C++17'];
+  if (l === 'c' || l === 'c11')                                   return DEFAULT_CODE['C'];
+  
+  // Default to C++ for cpp, c++17, c++20, etc.
+  return DEFAULT_CODE['C++'];
 }
 
 function loadEditorState(problemId: string): EditorState_Local {
@@ -141,26 +204,50 @@ function escapeHtml(str: string): string {
   );
 }
 
-/** Extract sample inputs from the problem's <pre> elements */
-function extractSampleInputs(): string[] {
-  const inputs: string[] = [];
-  const pres = document.querySelectorAll<HTMLElement>('.content pre');
-  let expectInput = false;
+interface SampleData {
+  input: string;
+  expectedOutput: string;
+}
 
-  pres.forEach((pre) => {
+/** Extract sample inputs and expected outputs from the problem's <pre> elements */
+function extractSamples(): SampleData[] {
+  const samples: SampleData[] = [];
+  const pres = Array.from(document.querySelectorAll<HTMLElement>('.content pre'));
+
+  for (let i = 0; i < pres.length; i++) {
+    const pre = pres[i];
     const prev = pre.previousElementSibling as HTMLElement | null;
     const label = prev?.textContent?.trim().toLowerCase() ?? '';
+    
     if (label.startsWith('input')) {
-      inputs.push(pre.textContent?.trim() ?? '');
+      const input = pre.textContent?.trim() ?? '';
+      let expectedOutput = '';
+      
+      // Look ahead for the corresponding output
+      if (i + 1 < pres.length) {
+        const nextPre = pres[i + 1];
+        const nextPrev = nextPre.previousElementSibling as HTMLElement | null;
+        const nextLabel = nextPrev?.textContent?.trim().toLowerCase() ?? '';
+        if (nextLabel.startsWith('output')) {
+          expectedOutput = nextPre.textContent?.trim() ?? '';
+        }
+      }
+      samples.push({ input, expectedOutput });
     }
-  });
-
-  // Fallback: alternate pre tags are often input/output pairs
-  if (inputs.length === 0 && pres.length >= 2) {
-    inputs.push(pres[0].textContent?.trim() ?? '');
   }
 
-  return inputs;
+  // Fallback: alternate pre tags are often input/output pairs
+  if (samples.length === 0) {
+    for (let i = 0; i < pres.length; i += 2) {
+      if (i + 1 < pres.length) {
+        samples.push({
+          input: pres[i].textContent?.trim() ?? '',
+          expectedOutput: pres[i + 1].textContent?.trim() ?? ''
+        });
+      }
+    }
+  }
+  return samples;
 }
 
 // ─── Verdict Badge ────────────────────────────────────────────────────────────
@@ -185,16 +272,18 @@ function verdictColor(v: string): { bg: string; border: string; text: string } {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function run() {
+  const removeFouc = () => document.getElementById('cses-fouc-preventer')?.remove();
+
   const url = window.location.href;
   const problemId = extractProblemIdFromUrl(url, document);
-  if (!problemId) return; // Only run if we are on a problem-related page
+  if (!problemId) return removeFouc(); // Only run if we are on a problem-related page
 
   // Avoid double-injection
-  if (document.getElementById('cses-editor-root')) return;
+  if (document.getElementById('cses-editor-root')) return removeFouc();
 
   // Wait for content div
   const contentEl = document.querySelector<HTMLElement>('.content');
-  if (!contentEl) return;
+  if (!contentEl) return removeFouc();
 
   // ── Load persisted state ──────────────────────────────────────────────────
   const state = loadEditorState(problemId);
@@ -203,7 +292,7 @@ async function run() {
 
   // ── Collect sample inputs ─────────────────────────────────────────────────
   // (Only really relevant on the /task/ tab where inputs are shown, but safe to run anywhere)
-  const sampleInputs = extractSampleInputs();
+  const sampleInputs = extractSamples().map(s => s.input);
   let customInputText = sampleInputs[0] ?? '';
 
   // ── Measure CSES header height BEFORE moving any DOM elements ─────────────
@@ -218,6 +307,7 @@ async function run() {
 
   const leftPane = document.createElement('div');
   leftPane.id = 'cses-left-pane';
+  leftPane.className = 'cses-panel';
 
   const divider = document.createElement('div');
   divider.id = 'cses-pane-divider';
@@ -225,6 +315,14 @@ async function run() {
 
   const rightPane = document.createElement('div');
   rightPane.id = 'cses-right-pane';
+  
+  const editorPanel = document.createElement('div');
+  editorPanel.id = 'cses-editor-panel';
+  editorPanel.className = 'cses-panel';
+
+  const consolePanel = document.createElement('div');
+  consolePanel.id = 'cses-console-panel';
+  consolePanel.className = 'cses-panel';
 
   // ── Extract the CSES problem navigation (TASK|SUBMIT|RESULTS|... tabs) ─────
   // On CSES problem pages, the nav is either inside .content or a sibling of it.
@@ -289,22 +387,38 @@ async function run() {
       flex-direction: row;
       z-index: 9000;
       overflow: hidden;
-      background: ${pageBg};
+      background: #f0f0f0;
+      padding: 8px;
+      gap: 0; /* Gap handled by divider and padding */
       box-sizing: border-box;
+    }
+    #cses-editor-root.cses-theme-dark {
+      background: #000000;
     }
     /* Body scroll should be suppressed when editor is active */
     body.cses-editor-active {
       overflow: hidden !important;
     }
+    
+    .cses-panel {
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    #cses-editor-root.cses-theme-dark .cses-panel {
+      background: #1e1e1e;
+      border-color: #333333;
+    }
+
     #cses-left-pane {
       flex: 0 0 45%;
       min-width: 300px;
       max-width: 60%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
       box-sizing: border-box;
-      border-right: 1px solid rgba(128,128,128,0.25);
     }
     /* ── CSES nav tab bar (TASK | SUBMIT | RESULTS | ...) ── */
     #cses-nav-tabbar {
@@ -334,19 +448,27 @@ async function run() {
       font-size: 13px;
       font-weight: 600;
       text-decoration: none;
-      color: rgba(128,128,128,0.8);
-      border-bottom: 2px solid transparent;
+      color: rgba(128,128,128,0.8) !important;
+      background: transparent !important;
+      border-top: none !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-bottom: 2px solid transparent !important;
       transition: color 0.15s, border-color 0.15s;
       letter-spacing: 0.3px;
     }
     #cses-nav-tabbar .nav a:hover {
-      color: #3b82f6;
-      border-bottom-color: #3b82f6;
+      color: #3b82f6 !important;
+      border-bottom-color: #3b82f6 !important;
     }
-    /* Active tab — whichever page we're currently on */
-    #cses-nav-tabbar .nav a[href*="/task/"] {
-      color: #3b82f6;
-      border-bottom-color: #3b82f6;
+    /* Active tab — CSES natively adds class="current" to whichever page we're on */
+    #cses-nav-tabbar .nav a.current {
+      color: #3b82f6 !important;
+      border-bottom: 2px solid #3b82f6 !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-top: none !important;
+      background: transparent !important;
     }
     /* Separators between nav links */
     #cses-nav-tabbar .nav {
@@ -360,33 +482,63 @@ async function run() {
       box-sizing: border-box;
     }
     #cses-pane-divider {
-      flex: 0 0 5px;
-      background: rgba(128, 128, 128, 0.2);
+      flex: 0 0 12px;
+      background: transparent;
       cursor: col-resize;
-      border-radius: 0;
-      transition: background 0.2s;
       position: relative;
+      z-index: 10;
     }
     #cses-pane-divider::after {
-      content: '⠿';
+      content: '⋮';
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: rgba(128,128,128,0.5);
-      font-size: 14px;
+      color: rgba(128,128,128,0.4);
+      font-size: 18px;
       pointer-events: none;
     }
-    #cses-pane-divider:hover {
-      background: rgba(59, 130, 246, 0.5);
+    #cses-pane-divider:hover::after {
+      color: rgba(59, 130, 246, 0.8);
     }
     #cses-right-pane {
       flex: 1 1 0;
       display: flex;
       flex-direction: column;
+      gap: 0;
       min-width: 320px;
-      overflow: hidden;
       box-sizing: border-box;
+      background: transparent !important;
+    }
+    #cses-editor-panel {
+      flex: 1 1 0;
+      min-height: 200px;
+    }
+    #cses-console-panel {
+      flex: none;
+      height: 250px;
+      min-height: 100px;
+    }
+    #cses-vertical-divider {
+      flex: 0 0 8px;
+      background: transparent;
+      cursor: row-resize;
+      position: relative;
+      z-index: 10;
+    }
+    #cses-vertical-divider::after {
+      content: '⋯';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(128,128,128,0.4);
+      font-size: 18px;
+      pointer-events: none;
+      line-height: 1;
+    }
+    #cses-vertical-divider:hover::after {
+      color: rgba(59, 130, 246, 0.8);
     }
     /* Toolbar */
     #cses-editor-toolbar {
@@ -433,9 +585,6 @@ async function run() {
     #cses-cm-wrapper {
       flex: 1 1 0;
       overflow: hidden;
-      border: 1px solid rgba(128,128,128,0.2);
-      border-radius: 4px;
-      margin: 6px 0;
       min-height: 200px;
     }
     #cses-cm-wrapper .cm-editor {
@@ -449,13 +598,12 @@ async function run() {
     /* Test case area */
     #cses-testcase-area {
       flex-shrink: 0;
-      border: 1px solid rgba(128,128,128,0.2);
-      border-radius: 4px;
       overflow: hidden;
     }
     #cses-testcase-tabs {
       display: flex;
-      border-bottom: 1px solid rgba(128,128,128,0.2);
+      border-bottom: 1px solid rgba(128,128,128,0.15);
+      background: rgba(128,128,128,0.03);
     }
     .cses-tab-btn {
       background: transparent;
@@ -475,20 +623,27 @@ async function run() {
       border-bottom-color: #3b82f6;
       color: #3b82f6;
     }
-    .cses-tab-content { display: none; padding: 8px; }
-    .cses-tab-content.active { display: block; }
+    .cses-tab-content { 
+      display: none; 
+      padding: 12px; 
+      flex: 1 1 0; 
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .cses-tab-content.active { display: flex; }
     #cses-sample-tabs-inner {
       display: flex;
+      flex-shrink: 0;
       gap: 4px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .cses-sample-tab {
       background: rgba(128,128,128,0.08);
       border: 1px solid rgba(128,128,128,0.25);
       color: inherit;
       font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 3px;
+      padding: 3px 10px;
+      border-radius: 4px;
       cursor: pointer;
       outline: none;
       font-family: inherit;
@@ -500,56 +655,98 @@ async function run() {
     }
     #cses-custom-input {
       width: 100%;
+      flex: 1 1 0;
       min-height: 80px;
       font-family: monospace;
       font-size: 13px;
       background: rgba(128,128,128,0.05);
       border: 1px solid rgba(128,128,128,0.2);
       color: inherit;
-      border-radius: 3px;
-      padding: 6px 8px;
-      resize: vertical;
+      border-radius: 4px;
+      padding: 8px;
+      resize: none;
       box-sizing: border-box;
       outline: none;
     }
-    /* Console output */
-    #cses-console-area {
-      flex-shrink: 0;
-      border: 1px solid rgba(128,128,128,0.2);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 4px;
+    #cses-editor-root.cses-theme-dark #cses-custom-input {
+      background: rgba(128,128,128,0.1);
+      border-color: rgba(128,128,128,0.3);
     }
-    #cses-console-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 5px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      background: rgba(128,128,128,0.07);
-      border-bottom: 1px solid rgba(128,128,128,0.2);
-      color: rgba(128,128,128,0.8);
-      cursor: pointer;
-      user-select: none;
-    }
+    /* Action bar */
     #cses-console-body {
+      flex: 1 1 0;
       font-family: monospace;
       font-size: 13px;
       min-height: 60px;
-      max-height: 160px;
       overflow-y: auto;
-      padding: 8px 10px;
+      padding: 10px 12px;
       white-space: pre-wrap;
       word-break: break-all;
-      background: rgba(128,128,128,0.03);
     }
+    /* Test Result inner elements */
+    .cses-result-case-btn {
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cses-result-case-btn.active {
+      background: #e5e7eb;
+    }
+    #cses-editor-root.cses-theme-dark .cses-result-case-btn.active {
+      background: #333333;
+    }
+    
+    .cses-result-pre {
+      background: rgba(128,128,128,0.04);
+      border: 1px solid rgba(128,128,128,0.1);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    #cses-editor-root.cses-theme-dark .cses-result-pre {
+      background: rgba(128,128,128,0.08);
+    }
+    
+    .cses-delete-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(128,128,128,0.2);
+      color: inherit;
+      font-size: 10px;
+      margin-left: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cses-delete-btn:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
     /* Action bar */
     #cses-action-bar {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 0 4px 0;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 10px 12px;
+      border-top: 1px solid rgba(128,128,128,0.15);
+      background: rgba(128,128,128,0.03);
       flex-shrink: 0;
       flex-wrap: wrap;
     }
@@ -625,9 +822,9 @@ async function run() {
       max-height: 100px;
       margin-bottom: 4px;
     }
-    /* Dark mode overrides via class on body */
-    body.cses-is-dark #cses-lang-select option,
-    body.cses-is-dark #cses-lang-select {
+    /* Dark mode overrides */
+    #cses-editor-root.cses-theme-dark #cses-lang-select option,
+    #cses-editor-root.cses-theme-dark #cses-lang-select {
       background-color: #1e293b;
       color: #e2e8f0;
     }
@@ -709,118 +906,138 @@ async function run() {
   toolbar.appendChild(langSelect);
   toolbar.appendChild(resetBtn);
   toolbar.appendChild(editorLabel);
-  rightPane.appendChild(toolbar);
+  editorPanel.appendChild(toolbar);
 
   // CodeMirror wrapper
   const cmWrapper = document.createElement('div');
   cmWrapper.id = 'cses-cm-wrapper';
-  rightPane.appendChild(cmWrapper);
+  editorPanel.appendChild(cmWrapper);
 
-  // Test case area
-  const testcaseArea = document.createElement('div');
-  testcaseArea.id = 'cses-testcase-area';
+  // ── Console Panel Tabs (Testcase / Test Result) ───────────────────────────
+  const consoleTabsRow = document.createElement('div');
+  consoleTabsRow.id = 'cses-testcase-tabs'; // reuse existing CSS id
 
-  const tabsRow = document.createElement('div');
-  tabsRow.id = 'cses-testcase-tabs';
+  const testcaseTabBtn = document.createElement('button');
+  testcaseTabBtn.className = 'cses-tab-btn active';
+  testcaseTabBtn.innerHTML = '☑ Testcase';
 
-  const sampleTabBtn = document.createElement('button');
-  sampleTabBtn.className = 'cses-tab-btn active';
-  sampleTabBtn.textContent = 'Test Cases';
+  const resultTabBtn = document.createElement('button');
+  resultTabBtn.className = 'cses-tab-btn';
+  resultTabBtn.innerHTML = '>&nbsp; Test Result';
+  
+  const consoleStatus = document.createElement('span');
+  consoleStatus.id = 'cses-console-status';
+  consoleStatus.style.cssText = 'font-weight:400;font-size:11px;margin-left:auto;margin-right:12px;display:flex;align-items:center;';
+  
+  consoleTabsRow.appendChild(testcaseTabBtn);
+  consoleTabsRow.appendChild(resultTabBtn);
+  consoleTabsRow.appendChild(consoleStatus);
+  consolePanel.appendChild(consoleTabsRow);
 
-  const customTabBtn = document.createElement('button');
-  customTabBtn.className = 'cses-tab-btn';
-  customTabBtn.textContent = 'Custom Input';
+  // ── Testcase Content ──────────────────────────────────────────────────────
+  const testcaseContent = document.createElement('div');
+  testcaseContent.className = 'cses-tab-content active';
+  testcaseContent.id = 'cses-testcase-area'; // reuse CSS
 
-  tabsRow.appendChild(sampleTabBtn);
-  tabsRow.appendChild(customTabBtn);
-  testcaseArea.appendChild(tabsRow);
+  // Maintain local state of testcases
+  const samples = extractSamples();
+  const testCasesState: SampleData[] = samples.length > 0 ? [...samples] : [{ input: '', expectedOutput: '' }];
+  let activeCaseIdx = 0;
 
-  // Sample inputs tab content
-  const sampleContent = document.createElement('div');
-  sampleContent.className = 'cses-tab-content active';
-  sampleContent.id = 'cses-sample-tab-content';
+  const sampleTabsInner = document.createElement('div');
+  sampleTabsInner.id = 'cses-sample-tabs-inner';
 
-  if (sampleInputs.length > 0) {
-    const sampleTabsInner = document.createElement('div');
-    sampleTabsInner.id = 'cses-sample-tabs-inner';
-    sampleInputs.forEach((inp, i) => {
+  const testcaseInputEl = document.createElement('textarea');
+  testcaseInputEl.id = 'cses-custom-input'; // reuse CSS for textarea
+  testcaseInputEl.spellcheck = false;
+
+  const renderCaseTabs = () => {
+    sampleTabsInner.innerHTML = '';
+    testCasesState.forEach((inp, i) => {
       const st = document.createElement('button');
-      st.className = 'cses-sample-tab' + (i === 0 ? ' active' : '');
+      st.className = 'cses-sample-tab' + (i === activeCaseIdx ? ' active' : '');
       st.textContent = `Case ${i + 1}`;
-      st.dataset.idx = String(i);
+      st.onclick = () => {
+        activeCaseIdx = i;
+        testcaseInputEl.value = testCasesState[i].input;
+        renderCaseTabs();
+      };
+      
+      if (i >= samples.length || (samples.length === 0 && i > 0)) {
+        const delBtn = document.createElement('span');
+        delBtn.className = 'cses-delete-btn';
+        delBtn.textContent = '×';
+        delBtn.title = 'Delete testcase';
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          testCasesState.splice(i, 1);
+          if (activeCaseIdx >= testCasesState.length) {
+            activeCaseIdx = Math.max(0, testCasesState.length - 1);
+          }
+          testcaseInputEl.value = testCasesState[activeCaseIdx]?.input ?? '';
+          renderCaseTabs();
+        };
+        st.appendChild(delBtn);
+      }
+      
       sampleTabsInner.appendChild(st);
     });
-    sampleContent.appendChild(sampleTabsInner);
+    // Add '+' button for custom cases
+    const addBtn = document.createElement('button');
+    addBtn.className = 'cses-sample-tab';
+    addBtn.textContent = '+';
+    addBtn.style.fontWeight = 'bold';
+    addBtn.onclick = () => {
+      testCasesState.push({ input: '', expectedOutput: '' });
+      activeCaseIdx = testCasesState.length - 1;
+      testcaseInputEl.value = '';
+      renderCaseTabs();
+    };
+    sampleTabsInner.appendChild(addBtn);
+  };
 
-    const sampleBlock = document.createElement('pre');
-    sampleBlock.className = 'cses-sample-block';
-    sampleBlock.id = 'cses-sample-display';
-    sampleBlock.textContent = sampleInputs[0] ?? '';
-    sampleContent.appendChild(sampleBlock);
-
-    // Use current sample as custom input prefill
-    customInputText = sampleInputs[0] ?? '';
-
-    sampleTabsInner.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (!target.classList.contains('cses-sample-tab')) return;
-      sampleTabsInner.querySelectorAll('.cses-sample-tab').forEach(b => b.classList.remove('active'));
-      target.classList.add('active');
-      const idx = parseInt(target.dataset.idx ?? '0', 10);
-      sampleBlock.textContent = sampleInputs[idx] ?? '';
-      customInputText = sampleInputs[idx] ?? '';
-      customInputEl.value = customInputText;
-    });
-  } else {
-    sampleContent.innerHTML = '<p style="color:rgba(128,128,128,0.6);font-size:12px;margin:0">No sample inputs detected.</p>';
-  }
-
-  // Custom input tab content
-  const customContent = document.createElement('div');
-  customContent.className = 'cses-tab-content';
-  customContent.id = 'cses-custom-tab-content';
-
-  const customInputEl = document.createElement('textarea');
-  customInputEl.id = 'cses-custom-input';
-  customInputEl.placeholder = 'Enter custom input here...';
-  customInputEl.value = customInputText;
-  customInputEl.spellcheck = false;
-  customContent.appendChild(customInputEl);
-
-  testcaseArea.appendChild(sampleContent);
-  testcaseArea.appendChild(customContent);
-  rightPane.appendChild(testcaseArea);
-
-  // Tab switching
-  sampleTabBtn.addEventListener('click', () => {
-    sampleTabBtn.classList.add('active');
-    customTabBtn.classList.remove('active');
-    sampleContent.classList.add('active');
-    customContent.classList.remove('active');
-  });
-  customTabBtn.addEventListener('click', () => {
-    customTabBtn.classList.add('active');
-    sampleTabBtn.classList.remove('active');
-    customContent.classList.add('active');
-    sampleContent.classList.remove('active');
+  testcaseInputEl.addEventListener('input', () => {
+    testCasesState[activeCaseIdx].input = testcaseInputEl.value;
   });
 
-  // Console output area
-  const consoleArea = document.createElement('div');
-  consoleArea.id = 'cses-console-area';
+  // Initialize
+  testcaseInputEl.value = testCasesState[activeCaseIdx]?.input ?? '';
+  renderCaseTabs();
 
-  const consoleHeader = document.createElement('div');
-  consoleHeader.id = 'cses-console-header';
-  consoleHeader.innerHTML = '<span>🖥 Console Output</span><span id="cses-console-status" style="font-weight:400;font-size:11px"></span>';
+  testcaseContent.appendChild(sampleTabsInner);
+  testcaseContent.appendChild(testcaseInputEl);
+  consolePanel.appendChild(testcaseContent);
+
+  // ── Test Result Content ───────────────────────────────────────────────────
+  const resultContent = document.createElement('div');
+  resultContent.className = 'cses-tab-content';
+  resultContent.id = 'cses-console-area'; // reuse CSS wrapper
 
   const consoleBody = document.createElement('div');
   consoleBody.id = 'cses-console-body';
-  consoleBody.textContent = 'Output will appear here after you run your code.';
+  consoleBody.textContent = 'Run your code to see the test result here.';
   consoleBody.style.color = 'rgba(128,128,128,0.6)';
+  
+  resultContent.appendChild(consoleBody);
+  consolePanel.appendChild(resultContent);
 
-  consoleArea.appendChild(consoleHeader);
-  consoleArea.appendChild(consoleBody);
-  rightPane.appendChild(consoleArea);
+  // Tab switching logic
+  const switchToTestResult = () => {
+    resultTabBtn.classList.add('active');
+    testcaseTabBtn.classList.remove('active');
+    resultContent.classList.add('active');
+    testcaseContent.classList.remove('active');
+  };
+
+  testcaseTabBtn.addEventListener('click', () => {
+    testcaseTabBtn.classList.add('active');
+    resultTabBtn.classList.remove('active');
+    testcaseContent.classList.add('active');
+    resultContent.classList.remove('active');
+  });
+
+  resultTabBtn.addEventListener('click', switchToTestResult);
+
 
   // Action bar
   const actionBar = document.createElement('div');
@@ -839,8 +1056,15 @@ async function run() {
 
   actionBar.appendChild(runBtn);
   actionBar.appendChild(submitBtn);
-  rightPane.appendChild(actionBar);
-  rightPane.appendChild(verdictBanner);
+  consolePanel.appendChild(actionBar);
+  consolePanel.appendChild(verdictBanner);
+  const vDivider = document.createElement('div');
+  vDivider.id = 'cses-vertical-divider';
+  
+  rightPane.appendChild(editorPanel);
+  rightPane.appendChild(vDivider);
+  rightPane.appendChild(consolePanel);
+
 
   // ── CodeMirror setup ──────────────────────────────────────────────────────
 
@@ -905,9 +1129,19 @@ async function run() {
     saveEditorState(problemId, { language: currentLang, code });
   });
 
+  const updateThemeClass = () => {
+    if (isDark()) {
+      root.classList.add('cses-theme-dark');
+    } else {
+      root.classList.remove('cses-theme-dark');
+    }
+  };
+  updateThemeClass(); // initial call
+
   // ── Dark mode observer ────────────────────────────────────────────────────
 
-  const darkObserver = new MutationObserver(() => {
+  const handleThemeChange = () => {
+    updateThemeClass();
     const code = cmView.state.doc.toString();
     cmView.destroy();
     cmView = new EditorView({
@@ -917,13 +1151,18 @@ async function run() {
       }),
       parent: cmWrapper,
     });
-  });
+  };
+
+  const darkObserver = new MutationObserver(handleThemeChange);
   darkObserver.observe(document.head, {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ['rel', 'disabled'],
+    attributeFilter: ['rel', 'disabled', 'href'],
   });
+
+  // Also listen for CSES's native theme-changed event
+  document.addEventListener('theme-changed', handleThemeChange);
 
   // ── Run Code handler ──────────────────────────────────────────────────────
 
@@ -939,46 +1178,138 @@ async function run() {
     if (!code) {
       consoleBody.textContent = 'Please write some code first!';
       consoleBody.style.color = '#f97316';
+      switchToTestResult();
       return;
     }
 
-    // Determine which input to use
-    const isCustomActive = customContent.classList.contains('active');
-    const stdin = isCustomActive
-      ? customInputEl.value
-      : (document.getElementById('cses-sample-display') as HTMLElement | null)?.textContent ?? '';
+    switchToTestResult();
 
     setRunLoading(true);
-    consoleBody.textContent = 'Running...';
-    consoleBody.style.color = 'rgba(128,128,128,0.6)';
-
+    consoleBody.innerHTML = '<div style="padding:12px;color:rgba(128,128,128,0.7)">Running testcases... <span class="cses-spinner"></span></div>';
+    
     const consoleStatus = document.getElementById('cses-console-status')!;
     consoleStatus.textContent = '';
 
-    const result = await runCode(currentLang, code, stdin);
+    const results: Array<{
+      stdout: string | null;
+      stderr: string | null;
+      error?: string | null;
+      exitCode: number | null;
+      passed: boolean;
+      input: string;
+      expected: string;
+      index: number;
+    }> = [];
+    let overallStatus = 'Accepted';
+
+    // Run all testcases that have input
+    for (let i = 0; i < testCasesState.length; i++) {
+      const tcase = testCasesState[i];
+      if (!tcase.input.trim() && i === testCasesState.length - 1) continue; // skip trailing empty custom case
+
+      const res = await runCode(currentLang, code, tcase.input);
+      let passed = true;
+      const outStr = (res.stdout ?? '').trim();
+      const expStr = (tcase.expectedOutput ?? '').trim();
+
+      if (res.exitCode !== 0 || res.error) {
+         passed = false;
+         if (overallStatus === 'Accepted') overallStatus = 'Runtime Error';
+      } else if (expStr && outStr !== expStr) {
+         passed = false;
+         if (overallStatus === 'Accepted') overallStatus = 'Wrong Answer';
+      }
+
+      results.push({ ...res, passed, input: tcase.input, expected: expStr, index: i });
+    }
 
     setRunLoading(false);
 
-    if (result.error && !result.stdout && !result.stderr) {
-      consoleBody.textContent = `Error: ${result.error}`;
-      consoleBody.style.color = '#ef4444';
-      return;
+    // Render LeetCode-style detailed results
+    if (results.length === 0) {
+       consoleBody.innerHTML = '<div style="padding:12px;color:rgba(128,128,128,0.7)">No testcases to run.</div>';
+       return;
     }
 
-    let output = '';
-    if (result.error) output += `[${result.error}]\n`;
-    if (result.stdout) output += result.stdout;
-    if (result.stderr) output += (output ? '\n--- stderr ---\n' : '') + result.stderr;
-    if (!output) output = '(no output)';
-
-    consoleBody.textContent = output;
-    consoleBody.style.color = result.exitCode === 0
-      ? 'inherit'
-      : '#ef4444';
-
-    const exitLabel = result.exitCode === 0 ? '✓ Exit 0' : `✗ Exit ${result.exitCode}`;
-    consoleStatus.textContent = exitLabel;
-    consoleStatus.style.color = result.exitCode === 0 ? '#22c55e' : '#ef4444';
+    const isSuccess = overallStatus === 'Accepted';
+    const statusColor = isSuccess ? '#22c55e' : '#ef4444';
+    consoleStatus.textContent = overallStatus;
+    consoleStatus.style.color = statusColor;
+    
+    // Clear consoleBody to inject detailed UI
+    consoleBody.innerHTML = '';
+    
+    // Top banner
+    const resultHeader = document.createElement('div');
+    resultHeader.style.cssText = 'font-size:22px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:12px;';
+    
+    const statusText = document.createElement('span');
+    statusText.textContent = overallStatus;
+    statusText.style.color = statusColor;
+    resultHeader.appendChild(statusText);
+    
+    consoleBody.appendChild(resultHeader);
+    
+    // Inner case tabs
+    const caseTabsRow = document.createElement('div');
+    caseTabsRow.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;';
+    
+    const caseContentArea = document.createElement('div');
+    
+    const renderResultCase = (idx: number) => {
+      caseTabsRow.innerHTML = '';
+      results.forEach((r, i) => {
+        const btn = document.createElement('button');
+        const isActive = i === idx;
+        
+        btn.className = 'cses-result-case-btn' + (isActive ? ' active' : '');
+        
+        const icon = r.passed ? '✓' : '✗';
+        const iconColor = r.passed ? '#22c55e' : '#ef4444';
+        btn.innerHTML = `<span style="color:${iconColor}; font-weight: bold;">${icon}</span> Case ${r.index + 1}`;
+        btn.onclick = () => renderResultCase(i);
+        caseTabsRow.appendChild(btn);
+      });
+      
+      // Render details for active case
+      const res = results[idx];
+      caseContentArea.innerHTML = '';
+      
+      const createBlock = (title: string, content: string) => {
+        const wrap = document.createElement('div');
+        wrap.style.marginBottom = '16px';
+        const h = document.createElement('div');
+        h.textContent = title;
+        h.style.cssText = 'font-size:12px;color:rgba(128,128,128,0.7);margin-bottom:8px;';
+        const pre = document.createElement('pre');
+        pre.className = 'cses-result-pre';
+        if (res.error && title === 'Output') {
+          pre.style.color = '#ef4444';
+        }
+        pre.textContent = content || '';
+        wrap.appendChild(h);
+        wrap.appendChild(pre);
+        return wrap;
+      };
+      
+      caseContentArea.appendChild(createBlock('Input', res.input));
+      
+      let outStr = '';
+      if (res.error) outStr += `[${res.error}]\n`;
+      if (res.stdout) outStr += res.stdout;
+      if (res.stderr) outStr += (outStr ? '\n--- stderr ---\n' : '') + res.stderr;
+      caseContentArea.appendChild(createBlock('Output', outStr.trim()));
+      
+      if (res.expected) {
+        caseContentArea.appendChild(createBlock('Expected', res.expected));
+      }
+    };
+    
+    consoleBody.appendChild(caseTabsRow);
+    consoleBody.appendChild(caseContentArea);
+    
+    // Initial render
+    renderResultCase(0);
   });
 
   // ── Submit handler ────────────────────────────────────────────────────────
@@ -1062,6 +1393,7 @@ async function run() {
       consoleStatus.textContent = 'CSES Compilation Error';
       consoleStatus.style.color = '#ef4444';
       consoleBody.innerHTML = `<pre style="margin:0;color:#ef4444;font-family:monospace;white-space:pre-wrap">${escapeHtml(result.compilerOutput)}</pre>`;
+      switchToTestResult();
     } else {
       // Clear console if it was a CSES submission
       const consoleStatus = document.getElementById('cses-console-status')!;
@@ -1071,34 +1403,66 @@ async function run() {
 
   });
 
-  // ── Draggable divider ─────────────────────────────────────────────────────
-
-  let dragging = false;
+  // ── Draggable dividers ────────────────────────────────────────────────────
+  let draggingH = false;
   let startX = 0;
   let startLeftWidth = 0;
 
   divider.addEventListener('mousedown', (e) => {
-    dragging = true;
+    draggingH = true;
     startX = e.clientX;
     startLeftWidth = leftPane.getBoundingClientRect().width;
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'col-resize';
     e.preventDefault();
   });
+  
+  let draggingV = false;
+  let startY = 0;
+  let startConsoleHeight = 0;
+  
+  const vDiv = document.getElementById('cses-vertical-divider');
+  if (vDiv) {
+    vDiv.addEventListener('mousedown', (e) => {
+      draggingV = true;
+      startY = e.clientY;
+      startConsoleHeight = consolePanel.getBoundingClientRect().height;
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'row-resize';
+      e.preventDefault();
+    });
+  }
 
   document.addEventListener('mousemove', (e) => {
-    if (!dragging) return;
-    const delta = e.clientX - startX;
-    const newWidth = Math.max(280, Math.min(startLeftWidth + delta, window.innerWidth - 400));
-    leftPane.style.flex = `0 0 ${newWidth}px`;
+    if (draggingH) {
+      const delta = e.clientX - startX;
+      const newWidth = Math.max(280, Math.min(startLeftWidth + delta, window.innerWidth - 400));
+      leftPane.style.flex = `0 0 ${newWidth}px`;
+    }
+    if (draggingV) {
+      const delta = startY - e.clientY; // drag up -> increase height
+      const rootRect = document.getElementById('cses-editor-root')?.getBoundingClientRect();
+      const maxH = rootRect ? rootRect.height - 150 : 800; // Leave space for code editor
+      const newHeight = Math.max(100, Math.min(startConsoleHeight + delta, maxH));
+      consolePanel.style.height = `${newHeight}px`;
+      consolePanel.style.maxHeight = 'none'; // Ensure max-height from CSS is overridden if present
+    }
   });
 
   document.addEventListener('mouseup', () => {
-    if (!dragging) return;
-    dragging = false;
-    document.body.style.userSelect = '';
-    document.body.style.cursor = '';
+    if (draggingH || draggingV) {
+      draggingH = false;
+      draggingV = false;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
   });
+
+  // ── Remove FOUC Preventer ──────────────────────────────────────────────────
+  const fouc = document.getElementById('cses-fouc-preventer');
+  if (fouc) {
+    fouc.remove();
+  }
 }
 
 export function onExecute() {

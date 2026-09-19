@@ -16,6 +16,11 @@
   },
   "content_scripts": [
     {
+      "matches": ["*://cses.fi/problemset/*"],
+      "js": ["src/content/preventFouc.ts"],
+      "run_at": "document_start"
+    },
+    {
       "matches": ["*://cses.fi/*"],
       "js": [
         "src/content/username.ts",
