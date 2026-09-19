@@ -377,7 +377,7 @@ async function run() {
   // Also grab the title block (which has the "Weird Algorithm" title) if it exists
   const titleBlock = document.querySelector<HTMLElement>('.title-block');
   if (titleBlock) {
-    titleBlock.style.margin = '0 0 16px 0';
+    titleBlock.style.cssText += 'margin: 0 0 16px 0 !important; float: none !important; width: 100% !important; display: block !important; clear: both !important;';
     contentScroll.appendChild(titleBlock);
   }
   
