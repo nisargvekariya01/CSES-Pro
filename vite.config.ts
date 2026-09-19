@@ -6,4 +6,7 @@ export default defineConfig({
   plugins: [
     crx({ manifest }),
   ],
+  build: {
+    chunkSizeWarningLimit: 700, // CodeMirror 6 bundle is ~612KB minified — expected
+  },
 });

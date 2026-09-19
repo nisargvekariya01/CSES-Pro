@@ -23,13 +23,17 @@
         "src/content/bookmarks.ts",
         "src/content/injectDashboard.ts",
         "src/content/submitEditor.ts",
-        "src/content/copyBlocks.ts"
+        "src/content/copyBlocks.ts",
+        "src/content/codeEditor.ts"
       ],
       "run_at": "document_idle"
     }
   ],
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
-  "host_permissions": ["*://cses.fi/*"],
+  "host_permissions": [
+    "*://cses.fi/*",
+    "https://wandbox.org/*"
+  ],
   "icons": {
     "16": "icons/image.png",
     "48": "icons/image.png",

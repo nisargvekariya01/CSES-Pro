@@ -101,9 +101,27 @@ export function extractSolvedProblems(doc: Document): Record<string, boolean> {
  * Extract the current problem ID from a task page URL or document.
  * e.g. https://cses.fi/problemset/task/1635 → "1635"
  */
-export function extractProblemIdFromUrl(url: string): string | null {
-  const match = url.match(/\/task\/(\d+)/);
-  return match?.[1] ?? null;
+export function extractProblemIdFromUrl(url: string, doc?: Document): string | null {
+  // First try to match the problem ID directly from standard tabs
+  // Tabs: task, submit, view, stats, statistics, analysis
+  const directMatch = url.match(/\/(?:task|submit|view|stats|statistics|analysis)\/(\d+)/);
+  if (directMatch?.[1]) {
+    return directMatch[1];
+  }
+
+  // If on a /result/ or /hack/ page, the number in the URL is a submission/hack ID, not problem ID.
+  // Instead, look for the task link in the page (e.g. "Task: Weird Algorithm")
+  if (doc) {
+    const taskLink = doc.querySelector<HTMLAnchorElement>('a[href*="/problemset/task/"]');
+    if (taskLink) {
+      const linkMatch = taskLink.href.match(/\/task\/(\d+)/);
+      if (linkMatch?.[1]) {
+        return linkMatch[1];
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
