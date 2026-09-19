@@ -138,6 +138,58 @@ export function initGlobalSearch() {
     .cses-search-item {
       transition: background 0.1s;
     }
+    #cses-search-btn-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 240px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 6px 12px;
+      margin-right: 20px;
+      cursor: text;
+      user-select: none;
+      transition: all 0.2s ease;
+      text-decoration: none !important;
+      height: 34px;
+      box-sizing: border-box;
+      vertical-align: middle;
+      color: #999;
+    }
+    #cses-search-btn-nav:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #ccc;
+    }
+    .cses-search-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 400;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    .cses-search-btn-left i {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+    .cses-search-btn-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cses-kbd {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: #bbb;
+      font-size: 11px;
+      padding: 2px 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
   `;
   document.head.appendChild(styleEl);
 
@@ -331,8 +383,21 @@ export function initGlobalSearch() {
     const searchBtn = document.createElement('a');
     searchBtn.id = 'cses-search-btn-nav';
     searchBtn.href = '#';
-    searchBtn.innerHTML = '<i class="fas fa-search"></i> Search (Cmd+K)';
-    searchBtn.style.cssText = 'cursor: pointer; margin-right: 15px; font-weight: 500;';
+    
+    // Auto-detect OS for the hotkey badge
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const cmdKey = isMac ? '⌘' : 'Ctrl';
+
+    searchBtn.innerHTML = `
+      <div class="cses-search-btn-left">
+        <i class="fas fa-search"></i>
+        <span>Search</span>
+      </div>
+      <div class="cses-search-btn-right">
+        <kbd class="cses-kbd">${cmdKey}</kbd> <kbd class="cses-kbd">K</kbd>
+      </div>
+    `;
+    
     searchBtn.addEventListener('click', (e) => {
       e.preventDefault();
       openSearch();

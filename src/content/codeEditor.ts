@@ -359,6 +359,14 @@ async function run() {
   // Scrollable content wrapper (below the nav)
   const contentScroll = document.createElement('div');
   contentScroll.id = 'cses-content-scroll';
+  
+  // Also grab the title block (which has the "Weird Algorithm" title) if it exists
+  const titleBlock = document.querySelector<HTMLElement>('.title-block');
+  if (titleBlock) {
+    titleBlock.style.margin = '0 0 16px 0';
+    contentScroll.appendChild(titleBlock);
+  }
+  
   contentScroll.appendChild(contentEl);
 
   leftPane.appendChild(navTabBar);
@@ -434,6 +442,28 @@ async function run() {
       scrollbar-width: none;
     }
     #cses-nav-tabbar::-webkit-scrollbar { display: none; }
+    
+    #cses-editor-root ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    #cses-editor-root ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #cses-editor-root ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    #cses-editor-root.cses-theme-dark ::-webkit-scrollbar-thumb {
+      background: #555;
+    }
+    #cses-editor-root ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    #cses-editor-root.cses-theme-dark ::-webkit-scrollbar-thumb:hover {
+      background: #777;
+    }
+
     /* Style CSES's own nav links as LeetCode-style tabs */
     #cses-nav-tabbar .nav {
       display: flex;
