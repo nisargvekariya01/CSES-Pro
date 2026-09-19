@@ -31,7 +31,7 @@ interface EditorState_Local {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 // Fallback language list shown if CSES submit page can't be fetched
-const FALLBACK_LANGUAGES = ['C++17', 'C++20', 'Python3', 'Java', 'Rust'];
+const FALLBACK_LANGUAGES = ['Assembly', 'C', 'C++', 'Haskell', 'Java', 'Node.js', 'Pascal', 'Python3', 'Ruby', 'Rust', 'Scala'];
 
 const DEFAULT_CODE: Record<string, string> = {
   'Assembly': `; Assembly (x86_64) starter
@@ -183,7 +183,7 @@ function loadEditorState(problemId: string): EditorState_Local {
     const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${problemId}`);
     if (raw) return JSON.parse(raw) as EditorState_Local;
   } catch { /* ignore */ }
-  return { language: 'C++17', code: DEFAULT_CODE['C++17'] };
+  return { language: 'C++', code: DEFAULT_CODE['C++'] };
 }
 
 function saveEditorState(problemId: string, state: EditorState_Local) {
@@ -868,11 +868,20 @@ async function run() {
       const opt = document.createElement('option');
       opt.value = lang.value;
       opt.textContent = lang.text;
-      // Restore saved language by value or by display text
-      if (lang.value === currentLang || lang.text === currentLang) {
-        opt.selected = true;
-        matched = true;
-        currentLang = lang.value; // Sync to exact CSES value
+      
+      // Fuzzy matching for old saved languages like "C++17" mapping to "C++"
+      const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9+]/g, '');
+      const nLangVal = normalize(lang.value);
+      const nLangText = normalize(lang.text);
+      const nCur = normalize(currentLang);
+      
+      // Strict match first, then fuzzy
+      if (lang.value === currentLang || lang.text === currentLang || nCur.includes(nLangVal) || nLangVal.includes(nCur) || nCur.includes(nLangText) || nLangText.includes(nCur)) {
+        if (!matched) { // Only take the first fuzzy match if multiple
+          opt.selected = true;
+          matched = true;
+          currentLang = lang.value; // Sync to exact CSES value
+        }
       }
       langSelect.appendChild(opt);
     });
@@ -1114,7 +1123,9 @@ async function run() {
   };
 
   langSelect.addEventListener('change', () => {
-    rebuildEditor(langSelect.value, false);
+    // Preserve the user's code when they switch languages.
+    // They can use the "Reset" button if they want the new language's template.
+    rebuildEditor(langSelect.value, true);
   });
 
   resetBtn.addEventListener('click', () => {
