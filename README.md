@@ -4,7 +4,7 @@ A premium, feature-rich Chrome Extension that seamlessly enhances your competiti
 
 ---
 
-## ✨ What's New in This Version (v1.0.5)
+## ✨ What's New in CSES Pro v2.0
 
 This massive update transforms CSES into a fully integrated IDE experience right in your browser. 
 *(Note: This version still includes all the original features like the Progress Dashboards, Bookmarks, and Copy Boxes. For documentation on the base features, please refer to the [v1 Legacy Branch](https://github.com/nisargvekariya01/CSES-Pro/tree/v1)).*
@@ -19,6 +19,7 @@ This massive update transforms CSES into a fully integrated IDE experience right
 ### 🚀 3. In-Browser Code Runner (via Wandbox)
 - **Run Without Submitting**: Execute your code directly in the browser against custom inputs using the Wandbox API.
 - **Auto-Extracted Sample Tests**: The extension automatically extracts sample inputs and expected outputs directly from the problem statement, so you can test your code against them with a single click.
+- **Custom Expected Outputs**: Add your own custom test cases and specify an *Expected Output*. The runner will automatically compare your code's output and visually flag any mismatches (Accepted vs Wrong Answer)!
 
 ### 📤 4. Direct CSES Submission
 - **Seamless Submissions**: Submit your solution directly from the problem task page without navigating away to the `/submit` page. The extension handles the form submission transparently using your active session.
