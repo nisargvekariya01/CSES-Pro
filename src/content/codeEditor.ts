@@ -697,7 +697,7 @@ async function run() {
       border-color: #3b82f6;
       color: #3b82f6;
     }
-    #cses-custom-input {
+    #cses-custom-input, #cses-custom-expected {
       width: 100%;
       flex: 1 1 0;
       min-height: 80px;
@@ -712,7 +712,8 @@ async function run() {
       box-sizing: border-box;
       outline: none;
     }
-    #cses-editor-root.cses-theme-dark #cses-custom-input {
+    #cses-editor-root.cses-theme-dark #cses-custom-input,
+    #cses-editor-root.cses-theme-dark #cses-custom-expected {
       background: rgba(128,128,128,0.1);
       border-color: rgba(128,128,128,0.3);
     }
@@ -1240,9 +1241,40 @@ async function run() {
   const sampleTabsInner = document.createElement('div');
   sampleTabsInner.id = 'cses-sample-tabs-inner';
 
+  const testcaseEditorWrapper = document.createElement('div');
+  testcaseEditorWrapper.style.display = 'flex';
+  testcaseEditorWrapper.style.flexDirection = 'column';
+  testcaseEditorWrapper.style.gap = '10px';
+  testcaseEditorWrapper.style.flex = '1 1 0';
+  testcaseEditorWrapper.style.overflowY = 'auto';
+  testcaseEditorWrapper.style.paddingRight = '4px';
+
+  const inputLabel = document.createElement('div');
+  inputLabel.textContent = 'Input =';
+  inputLabel.style.fontSize = '12px';
+  inputLabel.style.color = '#888';
+  inputLabel.style.marginBottom = '-6px';
+  inputLabel.style.marginTop = '4px';
+
   const testcaseInputEl = document.createElement('textarea');
-  testcaseInputEl.id = 'cses-custom-input'; // reuse CSS for textarea
+  testcaseInputEl.id = 'cses-custom-input';
   testcaseInputEl.spellcheck = false;
+
+  const expectedLabel = document.createElement('div');
+  expectedLabel.textContent = 'Expected Output =';
+  expectedLabel.style.fontSize = '12px';
+  expectedLabel.style.color = '#888';
+  expectedLabel.style.marginBottom = '-6px';
+
+  const testcaseExpectedEl = document.createElement('textarea');
+  testcaseExpectedEl.id = 'cses-custom-expected';
+  testcaseExpectedEl.spellcheck = false;
+  testcaseExpectedEl.placeholder = 'Optional: Add expected output to compare against';
+
+  testcaseEditorWrapper.appendChild(inputLabel);
+  testcaseEditorWrapper.appendChild(testcaseInputEl);
+  testcaseEditorWrapper.appendChild(expectedLabel);
+  testcaseEditorWrapper.appendChild(testcaseExpectedEl);
 
   const renderCaseTabs = () => {
     sampleTabsInner.innerHTML = '';
@@ -1253,6 +1285,7 @@ async function run() {
       st.onclick = () => {
         activeCaseIdx = i;
         testcaseInputEl.value = testCasesState[i].input;
+        testcaseExpectedEl.value = testCasesState[i].expectedOutput || '';
         renderCaseTabs();
       };
       
@@ -1268,6 +1301,7 @@ async function run() {
             activeCaseIdx = Math.max(0, testCasesState.length - 1);
           }
           testcaseInputEl.value = testCasesState[activeCaseIdx]?.input ?? '';
+          testcaseExpectedEl.value = testCasesState[activeCaseIdx]?.expectedOutput ?? '';
           renderCaseTabs();
         };
         st.appendChild(delBtn);
@@ -1284,6 +1318,7 @@ async function run() {
       testCasesState.push({ input: '', expectedOutput: '' });
       activeCaseIdx = testCasesState.length - 1;
       testcaseInputEl.value = '';
+      testcaseExpectedEl.value = '';
       renderCaseTabs();
     };
     sampleTabsInner.appendChild(addBtn);
@@ -1292,13 +1327,17 @@ async function run() {
   testcaseInputEl.addEventListener('input', () => {
     testCasesState[activeCaseIdx].input = testcaseInputEl.value;
   });
+  testcaseExpectedEl.addEventListener('input', () => {
+    testCasesState[activeCaseIdx].expectedOutput = testcaseExpectedEl.value;
+  });
 
   // Initialize
   testcaseInputEl.value = testCasesState[activeCaseIdx]?.input ?? '';
+  testcaseExpectedEl.value = testCasesState[activeCaseIdx]?.expectedOutput ?? '';
   renderCaseTabs();
 
   testcaseContent.appendChild(sampleTabsInner);
-  testcaseContent.appendChild(testcaseInputEl);
+  testcaseContent.appendChild(testcaseEditorWrapper);
   consolePanel.appendChild(testcaseContent);
 
   // ── Test Result Content ───────────────────────────────────────────────────
