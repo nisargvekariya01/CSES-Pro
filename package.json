@@ -1,6 +1,6 @@
 {
   "name": "cses-pro",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "CSES Pro",
   "type": "module",
   "private": true,
@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-cpp": "^6.0.3",
     "@codemirror/lang-java": "^6.0.2",

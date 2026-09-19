@@ -7,6 +7,7 @@ import { EditorState } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldGutter } from '@codemirror/language';
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { cpp } from '@codemirror/lang-cpp';
 import { python } from '@codemirror/lang-python';
 import { java } from '@codemirror/lang-java';
@@ -1408,10 +1409,11 @@ async function run() {
     history(),
     indentOnInput(),
     bracketMatching(),
+    closeBrackets(),
     foldGutter(),
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     getLanguageExtension(lang),
-    keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+    keymap.of([...defaultKeymap, ...closeBracketsKeymap, ...historyKeymap, indentWithTab]),
     ...(dark ? [oneDark] : []),
     EditorView.lineWrapping,
   ];
