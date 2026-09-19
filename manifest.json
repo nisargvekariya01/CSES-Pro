@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CSES Pro",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enhance your CSES experience with progress tracking, Codeforces-style features, advanced sorting, and more.",
   "action": {
     "default_icon": {
@@ -16,12 +16,18 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://cses.fi/problemset/*"],
-      "js": ["src/content/preventFouc.ts"],
+      "matches": [
+        "*://cses.fi/problemset/*"
+      ],
+      "js": [
+        "src/content/preventFouc.ts"
+      ],
       "run_at": "document_start"
     },
     {
-      "matches": ["*://cses.fi/*"],
+      "matches": [
+        "*://cses.fi/*"
+      ],
       "js": [
         "src/content/username.ts",
         "src/content/solvedProblems.ts",
@@ -36,7 +42,13 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "tabs", "activeTab", "scripting", "alarms"],
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "alarms"
+  ],
   "host_permissions": [
     "*://cses.fi/*",
     "https://wandbox.org/*"

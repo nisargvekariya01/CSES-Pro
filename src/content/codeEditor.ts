@@ -994,7 +994,7 @@ async function run() {
 
   // Manage Templates Modal
   manageTplBtn.addEventListener('click', async () => {
-    const isDark = document.body.classList.contains('cses-theme-dark');
+    const isDark = document.getElementById('darkmode-enabled')?.textContent?.trim() === 'true' || document.body.classList.contains('cses-theme-dark') || document.documentElement.classList.contains('dark');
     const bgMain = isDark ? '#252526' : '#ffffff';
     const bgSub = isDark ? '#1e1e1e' : '#f3f4f6';
     const borderColor = isDark ? '#444' : '#e5e7eb';
@@ -1147,7 +1147,7 @@ async function run() {
       applyTemplate(tpls[0]);
     } else {
       // More than 1: show a selection overlay
-      const isDark = document.body.classList.contains('cses-theme-dark');
+      const isDark = document.getElementById('darkmode-enabled')?.textContent?.trim() === 'true' || document.body.classList.contains('cses-theme-dark') || document.documentElement.classList.contains('dark');
       const bgMain = isDark ? '#252526' : '#ffffff';
       const bgSub = isDark ? '#1e1e1e' : '#f3f4f6';
       const bgHover = isDark ? '#2a2d3e' : '#e5e7eb';

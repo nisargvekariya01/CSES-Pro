@@ -135,59 +135,68 @@ export function initSubmissionAnalytics() {
     }
     
     if (problemId) {
-      // Fetch stats
-      fetch(`/problemset/stats/${problemId}/`)
-          .then(res => res.text())
-          .then(html => {
-            // Check for simple JS array patterns typically used in chart.js
-            const dataMatch = html.match(/data:\s*\[([\d,\s]+)\]/);
-            const labelsMatch = html.match(/labels:\s*\[([^\]]+)\]/);
+      // Always inject the badge first with the max time
+      if (resultRow && resultRow.cells[1]) {
+        const badge = document.createElement('span');
+        badge.id = 'cses-percentile-badge';
+        badge.style.cssText = `
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+          border: 1px solid rgba(34, 197, 94, 0.3);
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+          margin-left: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        `;
+        badge.innerHTML = `<i class="fas fa-rocket"></i> Max: ${timeVal}s`;
+        resultRow.cells[1].appendChild(badge);
 
-            if (dataMatch && labelsMatch) {
-              const dataArray = dataMatch[1].split(',').map(n => parseInt(n.trim()));
-              const labelsArray = labelsMatch[1].split(',').map(s => parseFloat(s.replace(/["'s]/g, '').trim()));
-              
-              let totalSubmissions = 0;
-              let slowerSubmissions = 0; // Submissions slower than user
+        // Try to fetch stats to append percentile
+        const statsUrl = window.location.origin + `/problemset/stats/${problemId}/`;
+        fetch(statsUrl)
+            .then(res => res.text())
+            .then(html => {
+              // Try various patterns used by competitive programming judges
+              let dataMatch = html.match(/data:\s*\[([\d,\s]+)\]/);
+              let labelsMatch = html.match(/labels:\s*\[([^\]]+)\]/);
 
-              for (let i = 0; i < Math.min(dataArray.length, labelsArray.length); i++) {
-                const count = dataArray[i];
-                if (isNaN(count)) continue;
-                totalSubmissions += count;
-                if (labelsArray[i] > timeVal) {
-                  slowerSubmissions += count;
-                }
-              }
-
-              if (totalSubmissions > 0) {
-                let percentile = Math.floor((slowerSubmissions / totalSubmissions) * 100);
-                if (percentile === 0 && slowerSubmissions > 0) percentile = 1; // Don't demoralize too much!
-                if (percentile > 99) percentile = 99; // Be humble
+              // CSES specific: they might use an array of objects or direct html. 
+              // If we find it, update the badge.
+              if (dataMatch && labelsMatch) {
+                const dataArray = dataMatch[1].split(',').map(n => parseInt(n.trim()));
+                const labelsArray = labelsMatch[1].split(',').map(s => parseFloat(s.replace(/["'s]/g, '').trim()));
                 
-                // Inject the badge right next to the "ACCEPTED" text in the Result row
-                if (resultRow && resultRow.cells[1]) {
-                  const badge = document.createElement('span');
-                  badge.style.cssText = `
-                    background: rgba(34, 197, 94, 0.15);
-                    color: #22c55e;
-                    border: 1px solid rgba(34, 197, 94, 0.3);
-                    padding: 2px 8px;
-                    border-radius: 12px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    margin-left: 12px;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                  `;
+                let totalSubmissions = 0;
+                let slowerSubmissions = 0;
+
+                for (let i = 0; i < Math.min(dataArray.length, labelsArray.length); i++) {
+                  const count = dataArray[i];
+                  if (isNaN(count)) continue;
+                  totalSubmissions += count;
+                  if (labelsArray[i] > timeVal) {
+                    slowerSubmissions += count;
+                  }
+                }
+
+                if (totalSubmissions > 0) {
+                  let percentile = Math.floor((slowerSubmissions / totalSubmissions) * 100);
+                  if (percentile === 0 && slowerSubmissions > 0) percentile = 1;
+                  if (percentile > 99) percentile = 99;
+                  
                   badge.innerHTML = `<i class="fas fa-rocket"></i> Beats ${percentile}% (Max: ${timeVal}s)`;
-                  resultRow.cells[1].appendChild(badge);
                 }
               }
-            }
-          })
-          .catch(e => console.error("Could not fetch CSES stats for percentile", e));
+            })
+            .catch(() => {
+              // Fail silently if stats cannot be fetched (e.g. adblocker, network error, or CSP)
+              // The user will still see the "Max: X.XXs" badge.
+            });
       }
+    }
   }
 }
 
