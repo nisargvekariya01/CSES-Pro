@@ -949,8 +949,52 @@ async function run() {
 
   const resetBtn = document.createElement('button');
   resetBtn.className = 'cses-toolbar-btn';
-  resetBtn.textContent = '↺ Reset';
+  resetBtn.innerHTML = '<i class="fas fa-undo"></i> Reset';
   resetBtn.title = 'Reset editor to default template';
+  
+  const templateBtn = document.createElement('button');
+  templateBtn.className = 'cses-toolbar-btn';
+  templateBtn.innerHTML = '<i class="fas fa-file-code"></i> Template';
+  templateBtn.title = 'Insert CP template';
+  templateBtn.style.marginLeft = '8px';
+  
+  templateBtn.addEventListener('click', () => {
+    const currentLang = langSelect.options[langSelect.selectedIndex]?.text.toLowerCase() || '';
+    let template = '';
+    if (currentLang.includes('c++') || currentLang.includes('c++20')) {
+      template = `#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\nvoid solve() {\n    \n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    solve();\n    return 0;\n}\n`;
+    } else if (currentLang.includes('python')) {
+      template = `import sys\n\ndef solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n`;
+    } else if (currentLang.includes('java')) {
+      template = `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        \n    }\n}\n`;
+    } else {
+      template = `// Template not defined for this language\n`;
+    }
+    
+    const currentCode = cmView.state.doc.toString().trim();
+    if (currentCode === '' || confirm('Overwrite current code with standard template?')) {
+      cmView.dispatch({
+        changes: { from: 0, to: cmView.state.doc.length, insert: template }
+      });
+    }
+  });
+
+  const themeBtn = document.createElement('button');
+  themeBtn.className = 'cses-toolbar-btn';
+  themeBtn.title = 'Toggle Dark/Light Mode';
+  themeBtn.style.marginLeft = '8px';
+  
+  const updateThemeBtnIcon = () => {
+    const isDark = document.getElementById('darkmode-enabled')?.textContent?.trim() === 'true' || document.body.classList.contains('cses-theme-dark');
+    themeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  };
+  updateThemeBtnIcon();
+  
+  themeBtn.addEventListener('click', () => {
+    const nativeBtn = document.querySelector<HTMLAnchorElement>('a[href="/darkmode"]');
+    if (nativeBtn) nativeBtn.click();
+    setTimeout(updateThemeBtnIcon, 50); // Small delay to let native script update the DOM
+  });
 
   const editorLabel = document.createElement('span');
   editorLabel.id = 'cses-editor-label';
@@ -958,6 +1002,8 @@ async function run() {
 
   toolbar.appendChild(langSelect);
   toolbar.appendChild(resetBtn);
+  toolbar.appendChild(templateBtn);
+  toolbar.appendChild(themeBtn);
   toolbar.appendChild(editorLabel);
   editorPanel.appendChild(toolbar);
 
@@ -1404,6 +1450,29 @@ async function run() {
 
     verdictBanner.style.display = 'none';
     setSubmitLoading(true);
+    
+    // Create Submission Overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: opacity 0.3s ease;
+    `;
+    overlay.innerHTML = `
+      <div class="cses-spinner" style="width: 50px; height: 50px; border-width: 5px; border-top-color: #3b82f6; margin-bottom: 24px;"></div>
+      <div style="font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">Submitting to CSES...</div>
+      <div style="font-size: 15px; color: #bbb; margin-top: 10px;">Judging your solution in the cloud ☁️</div>
+    `;
+    root.appendChild(overlay);
 
     // Use the exact language value from the select (fetched from CSES's form)
     // and the cached form data (CSRF + hidden fields) to avoid a second network round-trip
@@ -1415,8 +1484,9 @@ async function run() {
     );
 
     setSubmitLoading(false);
-
+    
     if (!result.success) {
+      overlay.remove();
       verdictBanner.style.display = 'flex';
       verdictBanner.style.backgroundColor = 'rgba(239,68,68,0.15)';
       verdictBanner.style.borderColor = '#ef4444';
