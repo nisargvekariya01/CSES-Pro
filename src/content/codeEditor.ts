@@ -794,38 +794,44 @@ async function run() {
       flex-shrink: 0;
       flex-wrap: wrap;
     }
+    #cses-run-btn, #cses-submit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      outline: none;
+    }
     #cses-run-btn {
-      background: #2563eb;
-      border: none;
-      color: #fff;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 7px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      outline: none;
+      background: rgba(128,128,128,0.15);
+      color: var(--text-color, inherit);
     }
-    #cses-run-btn:hover:not(:disabled) { background: #1d4ed8; }
-    #cses-run-btn:active:not(:disabled) { transform: scale(0.97); }
-    #cses-run-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    #cses-run-btn:hover:not(:disabled) { background: rgba(128,128,128,0.25); }
+    #cses-run-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
     #cses-submit-btn {
-      background: #16a34a;
-      border: none;
-      color: #fff;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 7px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      outline: none;
+      background: rgba(128,128,128,0.15);
+      color: #2cbb5d;
     }
-    #cses-submit-btn:hover:not(:disabled) { background: #15803d; }
-    #cses-submit-btn:active:not(:disabled) { transform: scale(0.97); }
-    #cses-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    #cses-submit-btn:hover:not(:disabled) { background: rgba(44,187,93,0.15); }
+    #cses-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .cses-lc-loader {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin-lc 0.75s linear infinite;
+    }
+    @keyframes spin-lc { 100% { transform: rotate(360deg); } }
     /* Verdict toast */
     #cses-verdict-banner {
       display: none;
@@ -988,28 +994,35 @@ async function run() {
 
   // Manage Templates Modal
   manageTplBtn.addEventListener('click', async () => {
+    const isDark = document.body.classList.contains('cses-theme-dark');
+    const bgMain = isDark ? '#252526' : '#ffffff';
+    const bgSub = isDark ? '#1e1e1e' : '#f3f4f6';
+    const borderColor = isDark ? '#444' : '#e5e7eb';
+    const textColor = isDark ? '#eee' : '#111827';
+    const textMuted = isDark ? '#888' : '#6b7280';
+    
     const overlay = document.createElement('div');
     overlay.style.cssText = `
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, ${isDark ? '0.7' : '0.4'}); backdrop-filter: blur(4px);
       z-index: 10000; display: flex; align-items: center; justify-content: center;
-      color: #eee; font-family: -apple-system, sans-serif;
+      color: ${textColor}; font-family: -apple-system, sans-serif;
     `;
 
     const modal = document.createElement('div');
     modal.style.cssText = `
-      background: #252526; border: 1px solid #444; border-radius: 8px;
+      background: ${bgMain}; border: 1px solid ${borderColor}; border-radius: 8px;
       width: 500px; max-width: 90%; max-height: 90%; display: flex; flex-direction: column;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden;
     `;
 
     const header = document.createElement('div');
-    header.style.cssText = 'padding: 16px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #1e1e1e;';
+    header.style.cssText = `padding: 16px 20px; border-bottom: 1px solid ${borderColor}; display: flex; justify-content: space-between; align-items: center; background: ${bgSub};`;
     header.innerHTML = '<h3 style="margin:0;font-size:16px;font-weight:600;"><i class="fas fa-code"></i> Manage Templates</h3>';
     
     const closeBtn = document.createElement('button');
     closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-    closeBtn.style.cssText = 'background:transparent;border:none;color:#aaa;cursor:pointer;font-size:16px;';
+    closeBtn.style.cssText = `background:transparent;border:none;color:${textMuted};cursor:pointer;font-size:16px;`;
     closeBtn.onclick = () => overlay.remove();
     header.appendChild(closeBtn);
 
@@ -1023,14 +1036,14 @@ async function run() {
       if (tpls.length > 0) {
         const listTitle = document.createElement('div');
         listTitle.textContent = 'Your Templates:';
-        listTitle.style.cssText = 'font-size: 13px; color: #888; font-weight: 600; text-transform: uppercase;';
+        listTitle.style.cssText = `font-size: 13px; color: ${textMuted}; font-weight: 600; text-transform: uppercase;`;
         body.appendChild(listTitle);
 
         const list = document.createElement('div');
         list.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
         tpls.forEach(t => {
           const item = document.createElement('div');
-          item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #333; padding: 10px 12px; border-radius: 6px;';
+          item.style.cssText = `display: flex; justify-content: space-between; align-items: center; background: ${bgSub}; border: 1px solid ${borderColor}; padding: 10px 12px; border-radius: 6px;`;
           item.innerHTML = `
             <div>
               <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">${t.name}</div>
@@ -1055,12 +1068,12 @@ async function run() {
       // Add New Form
       const addTitle = document.createElement('div');
       addTitle.textContent = 'Add New Template:';
-      addTitle.style.cssText = 'font-size: 13px; color: #888; font-weight: 600; text-transform: uppercase; margin-top: 8px;';
+      addTitle.style.cssText = `font-size: 13px; color: ${textMuted}; font-weight: 600; text-transform: uppercase; margin-top: 8px;`;
       body.appendChild(addTitle);
 
       const nameInput = document.createElement('input');
       nameInput.placeholder = 'Template Name (e.g. C++ Standard)';
-      nameInput.style.cssText = 'width: 100%; padding: 8px 12px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #eee; border-radius: 4px; outline: none; box-sizing: border-box; font-family: inherit;';
+      nameInput.style.cssText = `width: 100%; padding: 8px 12px; background: ${bgSub}; border: 1px solid ${borderColor}; color: ${textColor}; border-radius: 4px; outline: none; box-sizing: border-box; font-family: inherit;`;
       
       const langDrop = document.createElement('select');
       langDrop.style.cssText = nameInput.style.cssText;
@@ -1074,7 +1087,7 @@ async function run() {
 
       const codeInput = document.createElement('textarea');
       codeInput.placeholder = 'Paste template code here...';
-      codeInput.style.cssText = 'width: 100%; height: 150px; padding: 12px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #eee; border-radius: 4px; outline: none; box-sizing: border-box; font-family: monospace; font-size: 13px; resize: vertical;';
+      codeInput.style.cssText = `width: 100%; height: 150px; padding: 12px; background: ${bgSub}; border: 1px solid ${borderColor}; color: ${textColor}; border-radius: 4px; outline: none; box-sizing: border-box; font-family: monospace; font-size: 13px; resize: vertical;`;
 
       const saveBtn = document.createElement('button');
       saveBtn.textContent = 'Save Template';
@@ -1134,23 +1147,31 @@ async function run() {
       applyTemplate(tpls[0]);
     } else {
       // More than 1: show a selection overlay
+      const isDark = document.body.classList.contains('cses-theme-dark');
+      const bgMain = isDark ? '#252526' : '#ffffff';
+      const bgSub = isDark ? '#1e1e1e' : '#f3f4f6';
+      const bgHover = isDark ? '#2a2d3e' : '#e5e7eb';
+      const borderColor = isDark ? '#444' : '#e5e7eb';
+      const textColor = isDark ? '#eee' : '#111827';
+      const textMuted = isDark ? '#aaa' : '#6b7280';
+
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 10000; display: flex; align-items: center; justify-content: center; font-family: -apple-system, sans-serif;';
+      overlay.style.cssText = `position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,${isDark ? '0.6' : '0.3'}); backdrop-filter: blur(3px); z-index: 10000; display: flex; align-items: center; justify-content: center; font-family: -apple-system, sans-serif;`;
       
       const modal = document.createElement('div');
-      modal.style.cssText = 'background: #252526; border: 1px solid #444; border-radius: 8px; width: 400px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px;';
+      modal.style.cssText = `background: ${bgMain}; border: 1px solid ${borderColor}; border-radius: 8px; width: 400px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px;`;
       
       const title = document.createElement('div');
       title.textContent = 'Select Template to Insert';
-      title.style.cssText = 'font-weight: 600; font-size: 16px; color: #eee; margin-bottom: 8px;';
+      title.style.cssText = `font-weight: 600; font-size: 16px; color: ${textColor}; margin-bottom: 8px;`;
       modal.appendChild(title);
 
       tpls.forEach(t => {
         const btn = document.createElement('button');
-        btn.style.cssText = 'background: #1e1e1e; border: 1px solid #333; color: #eee; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;';
+        btn.style.cssText = `background: ${bgSub}; border: 1px solid ${borderColor}; color: ${textColor}; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;`;
         btn.innerHTML = `<span style="font-weight: 500;">${t.name}</span><span style="font-size: 12px; color: #3b82f6;">${t.langName}</span>`;
-        btn.onmouseover = () => btn.style.background = '#2a2d3e';
-        btn.onmouseleave = () => btn.style.background = '#1e1e1e';
+        btn.onmouseover = () => btn.style.background = bgHover;
+        btn.onmouseleave = () => btn.style.background = bgSub;
         btn.onclick = () => {
           applyTemplate(t);
           overlay.remove();
@@ -1160,7 +1181,7 @@ async function run() {
 
       const cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'Cancel';
-      cancelBtn.style.cssText = 'background: transparent; border: 1px solid #555; color: #aaa; padding: 8px; border-radius: 4px; cursor: pointer; margin-top: 8px;';
+      cancelBtn.style.cssText = `background: transparent; border: 1px solid ${textMuted}; color: ${textMuted}; padding: 8px; border-radius: 4px; cursor: pointer; margin-top: 8px;`;
       cancelBtn.onclick = () => overlay.remove();
       modal.appendChild(cancelBtn);
 
@@ -1317,11 +1338,11 @@ async function run() {
 
   const runBtn = document.createElement('button');
   runBtn.id = 'cses-run-btn';
-  runBtn.innerHTML = '▶ Run Code';
+  runBtn.innerHTML = '<i class="fas fa-play" style="font-size: 11px;"></i> Run';
 
   const submitBtn = document.createElement('button');
   submitBtn.id = 'cses-submit-btn';
-  submitBtn.innerHTML = '⬆ Submit';
+  submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Submit';
 
   const verdictBanner = document.createElement('div');
   verdictBanner.id = 'cses-verdict-banner';
@@ -1443,8 +1464,8 @@ async function run() {
   const setRunLoading = (loading: boolean) => {
     runBtn.disabled = loading;
     runBtn.innerHTML = loading
-      ? '<span class="cses-spinner"></span> Running...'
-      : '▶ Run Code';
+      ? '<span class="cses-lc-loader"></span> Pending...'
+      : '<i class="fas fa-play" style="font-size: 11px;"></i> Run';
   };
 
   runBtn.addEventListener('click', async () => {
@@ -1592,8 +1613,8 @@ async function run() {
     submitBtn.disabled = loading;
     runBtn.disabled = loading;
     submitBtn.innerHTML = loading
-      ? '<span class="cses-spinner"></span> Submitting...'
-      : '⬆ Submit';
+      ? '<span class="cses-lc-loader"></span> Pending...'
+      : '<i class="fas fa-cloud-upload-alt"></i> Submit';
   };
 
   const showVerdict = (verdict: string) => {
@@ -1604,7 +1625,7 @@ async function run() {
     verdictBanner.style.color = colors.text;
     verdictBanner.innerHTML = '';
 
-    const icon = verdict === 'ACCEPTED' ? '✓' : '✗';
+    const icon = verdict === 'ACCEPTED' ? '✅' : '❌';
     verdictBanner.textContent = `${icon} ${verdict}`;
 
     if (verdict !== 'PENDING') {
@@ -1623,29 +1644,6 @@ async function run() {
 
     verdictBanner.style.display = 'none';
     setSubmitLoading(true);
-    
-    // Create Submission Overlay
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      transition: opacity 0.3s ease;
-    `;
-    overlay.innerHTML = `
-      <div class="cses-spinner" style="width: 50px; height: 50px; border-width: 5px; border-top-color: #3b82f6; margin-bottom: 24px;"></div>
-      <div style="font-size: 24px; font-weight: 600; letter-spacing: 0.5px;">Submitting to CSES...</div>
-      <div style="font-size: 15px; color: #bbb; margin-top: 10px;">Judging your solution in the cloud ☁️</div>
-    `;
-    root.appendChild(overlay);
 
     // Use the exact language value from the select (fetched from CSES's form)
     // and the cached form data (CSRF + hidden fields) to avoid a second network round-trip
@@ -1659,7 +1657,6 @@ async function run() {
     setSubmitLoading(false);
     
     if (!result.success) {
-      overlay.remove();
       verdictBanner.style.display = 'flex';
       verdictBanner.style.backgroundColor = 'rgba(239,68,68,0.15)';
       verdictBanner.style.borderColor = '#ef4444';
