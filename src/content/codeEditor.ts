@@ -958,42 +958,215 @@ async function run() {
   templateBtn.title = 'Insert CP template';
   templateBtn.style.marginLeft = '8px';
   
-  templateBtn.addEventListener('click', () => {
-    const currentLang = langSelect.options[langSelect.selectedIndex]?.text.toLowerCase() || '';
-    let template = '';
-    if (currentLang.includes('c++') || currentLang.includes('c++20')) {
-      template = `#include <bits/stdc++.h>\nusing namespace std;\nusing ll = long long;\n\nvoid solve() {\n    \n}\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(NULL);\n    solve();\n    return 0;\n}\n`;
-    } else if (currentLang.includes('python')) {
-      template = `import sys\n\ndef solve():\n    pass\n\nif __name__ == '__main__':\n    solve()\n`;
-    } else if (currentLang.includes('java')) {
-      template = `import java.util.*;\nimport java.io.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        \n    }\n}\n`;
-    } else {
-      template = `// Template not defined for this language\n`;
-    }
-    
-    const currentCode = cmView.state.doc.toString().trim();
-    if (currentCode === '' || confirm('Overwrite current code with standard template?')) {
-      cmView.dispatch({
-        changes: { from: 0, to: cmView.state.doc.length, insert: template }
+  interface CustomTemplate {
+    id: string;
+    name: string;
+    langValue: string;
+    langName: string;
+    code: string;
+  }
+
+  const getCustomTemplates = (): Promise<CustomTemplate[]> => {
+    return new Promise(resolve => {
+      chrome.storage.local.get(['cses_custom_templates'], (res) => {
+        resolve(res.cses_custom_templates || []);
       });
-    }
+    });
+  };
+
+  const saveCustomTemplates = (tpls: CustomTemplate[]): Promise<void> => {
+    return new Promise(resolve => {
+      chrome.storage.local.set({ cses_custom_templates: tpls }, () => resolve());
+    });
+  };
+
+  const manageTplBtn = document.createElement('button');
+  manageTplBtn.className = 'cses-toolbar-btn';
+  manageTplBtn.innerHTML = '<i class="fas fa-cog"></i>';
+  manageTplBtn.title = 'Manage Custom Templates';
+  manageTplBtn.style.marginLeft = '4px';
+
+  // Manage Templates Modal
+  manageTplBtn.addEventListener('click', async () => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+      z-index: 10000; display: flex; align-items: center; justify-content: center;
+      color: #eee; font-family: -apple-system, sans-serif;
+    `;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: #252526; border: 1px solid #444; border-radius: 8px;
+      width: 500px; max-width: 90%; max-height: 90%; display: flex; flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = 'padding: 16px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #1e1e1e;';
+    header.innerHTML = '<h3 style="margin:0;font-size:16px;font-weight:600;"><i class="fas fa-code"></i> Manage Templates</h3>';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    closeBtn.style.cssText = 'background:transparent;border:none;color:#aaa;cursor:pointer;font-size:16px;';
+    closeBtn.onclick = () => overlay.remove();
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('div');
+    body.style.cssText = 'padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;';
+
+    const renderTemplatesList = async () => {
+      body.innerHTML = '';
+      const tpls = await getCustomTemplates();
+      
+      if (tpls.length > 0) {
+        const listTitle = document.createElement('div');
+        listTitle.textContent = 'Your Templates:';
+        listTitle.style.cssText = 'font-size: 13px; color: #888; font-weight: 600; text-transform: uppercase;';
+        body.appendChild(listTitle);
+
+        const list = document.createElement('div');
+        list.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+        tpls.forEach(t => {
+          const item = document.createElement('div');
+          item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; border: 1px solid #333; padding: 10px 12px; border-radius: 6px;';
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">${t.name}</div>
+              <div style="font-size: 12px; color: #3b82f6;">${t.langName}</div>
+            </div>
+          `;
+          const delBtn = document.createElement('button');
+          delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+          delBtn.style.cssText = 'background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 6px;';
+          delBtn.onclick = async () => {
+            if (confirm(`Delete template "${t.name}"?`)) {
+              await saveCustomTemplates(tpls.filter(x => x.id !== t.id));
+              renderTemplatesList();
+            }
+          };
+          item.appendChild(delBtn);
+          list.appendChild(item);
+        });
+        body.appendChild(list);
+      }
+
+      // Add New Form
+      const addTitle = document.createElement('div');
+      addTitle.textContent = 'Add New Template:';
+      addTitle.style.cssText = 'font-size: 13px; color: #888; font-weight: 600; text-transform: uppercase; margin-top: 8px;';
+      body.appendChild(addTitle);
+
+      const nameInput = document.createElement('input');
+      nameInput.placeholder = 'Template Name (e.g. C++ Standard)';
+      nameInput.style.cssText = 'width: 100%; padding: 8px 12px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #eee; border-radius: 4px; outline: none; box-sizing: border-box; font-family: inherit;';
+      
+      const langDrop = document.createElement('select');
+      langDrop.style.cssText = nameInput.style.cssText;
+      Array.from(langSelect.options).forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.textContent;
+        langDrop.appendChild(option);
+      });
+      langDrop.value = langSelect.value;
+
+      const codeInput = document.createElement('textarea');
+      codeInput.placeholder = 'Paste template code here...';
+      codeInput.style.cssText = 'width: 100%; height: 150px; padding: 12px; background: #1e1e1e; border: 1px solid #3c3c3c; color: #eee; border-radius: 4px; outline: none; box-sizing: border-box; font-family: monospace; font-size: 13px; resize: vertical;';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save Template';
+      saveBtn.style.cssText = 'background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; align-self: flex-start;';
+      saveBtn.onclick = async () => {
+        if (!nameInput.value.trim() || !codeInput.value.trim()) return alert('Please enter a name and code.');
+        const newTpls = await getCustomTemplates();
+        newTpls.push({
+          id: Date.now().toString(),
+          name: nameInput.value.trim(),
+          langValue: langDrop.value,
+          langName: langDrop.options[langDrop.selectedIndex]?.text || 'Unknown',
+          code: codeInput.value
+        });
+        await saveCustomTemplates(newTpls);
+        renderTemplatesList();
+      };
+
+      body.appendChild(nameInput);
+      body.appendChild(langDrop);
+      body.appendChild(codeInput);
+      body.appendChild(saveBtn);
+    };
+
+    modal.appendChild(header);
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+    root.appendChild(overlay);
+
+    renderTemplatesList();
   });
 
-  const themeBtn = document.createElement('button');
-  themeBtn.className = 'cses-toolbar-btn';
-  themeBtn.title = 'Toggle Dark/Light Mode';
-  themeBtn.style.marginLeft = '8px';
-  
-  const updateThemeBtnIcon = () => {
-    const isDark = document.getElementById('darkmode-enabled')?.textContent?.trim() === 'true' || document.body.classList.contains('cses-theme-dark');
-    themeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-  };
-  updateThemeBtnIcon();
-  
-  themeBtn.addEventListener('click', () => {
-    const nativeBtn = document.querySelector<HTMLAnchorElement>('a[href="/darkmode"]');
-    if (nativeBtn) nativeBtn.click();
-    setTimeout(updateThemeBtnIcon, 50); // Small delay to let native script update the DOM
+  templateBtn.addEventListener('click', async () => {
+    const tpls = await getCustomTemplates();
+    
+    if (tpls.length === 0) {
+      alert('No custom templates found. Please add one using the ⚙️ icon next to the Template button.');
+      return;
+    }
+
+    const applyTemplate = (t: CustomTemplate) => {
+      const currentCode = cmView.state.doc.toString().trim();
+      if (currentCode === '' || confirm(`Overwrite current code with template "${t.name}"?`)) {
+        // Change language automatically if different
+        if (langSelect.value !== t.langValue) {
+          langSelect.value = t.langValue;
+          langSelect.dispatchEvent(new Event('change'));
+        }
+        cmView.dispatch({
+          changes: { from: 0, to: cmView.state.doc.length, insert: t.code }
+        });
+      }
+    };
+
+    if (tpls.length === 1) {
+      // Exactly 1 template: automatically apply it and set the language
+      applyTemplate(tpls[0]);
+    } else {
+      // More than 1: show a selection overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 10000; display: flex; align-items: center; justify-content: center; font-family: -apple-system, sans-serif;';
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = 'background: #252526; border: 1px solid #444; border-radius: 8px; width: 400px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px;';
+      
+      const title = document.createElement('div');
+      title.textContent = 'Select Template to Insert';
+      title.style.cssText = 'font-weight: 600; font-size: 16px; color: #eee; margin-bottom: 8px;';
+      modal.appendChild(title);
+
+      tpls.forEach(t => {
+        const btn = document.createElement('button');
+        btn.style.cssText = 'background: #1e1e1e; border: 1px solid #333; color: #eee; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;';
+        btn.innerHTML = `<span style="font-weight: 500;">${t.name}</span><span style="font-size: 12px; color: #3b82f6;">${t.langName}</span>`;
+        btn.onmouseover = () => btn.style.background = '#2a2d3e';
+        btn.onmouseleave = () => btn.style.background = '#1e1e1e';
+        btn.onclick = () => {
+          applyTemplate(t);
+          overlay.remove();
+        };
+        modal.appendChild(btn);
+      });
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.style.cssText = 'background: transparent; border: 1px solid #555; color: #aaa; padding: 8px; border-radius: 4px; cursor: pointer; margin-top: 8px;';
+      cancelBtn.onclick = () => overlay.remove();
+      modal.appendChild(cancelBtn);
+
+      overlay.appendChild(modal);
+      root.appendChild(overlay);
+    }
   });
 
   const editorLabel = document.createElement('span');
@@ -1003,7 +1176,7 @@ async function run() {
   toolbar.appendChild(langSelect);
   toolbar.appendChild(resetBtn);
   toolbar.appendChild(templateBtn);
-  toolbar.appendChild(themeBtn);
+  toolbar.appendChild(manageTplBtn);
   toolbar.appendChild(editorLabel);
   editorPanel.appendChild(toolbar);
 
