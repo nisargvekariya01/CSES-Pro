@@ -4,6 +4,21 @@ import { setUsername, setSolvedProblems, setHeatmapData, setLastUpdated } from '
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[CSES Dashboard] Extension installed/updated.');
+  
+  // Set up a session keep-alive ping every 20 minutes
+  chrome.alarms.create('cses-keep-alive', {
+    periodInMinutes: 20
+  });
+});
+
+// Fire the keep-alive fetch
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'cses-keep-alive') {
+    fetch('https://cses.fi/', { credentials: 'include' })
+      .then(r => r.text())
+      .then(() => console.log('[CSES Dashboard] Sent session keep-alive ping'))
+      .catch(e => console.error('[CSES Dashboard] Keep-alive ping failed', e));
+  }
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

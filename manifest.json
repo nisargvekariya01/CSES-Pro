@@ -29,12 +29,13 @@
         "src/content/injectDashboard.ts",
         "src/content/submitEditor.ts",
         "src/content/copyBlocks.ts",
-        "src/content/codeEditor.ts"
+        "src/content/codeEditor.ts",
+        "src/content/globalSearch.ts"
       ],
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "tabs", "activeTab", "scripting"],
+  "permissions": ["storage", "tabs", "activeTab", "scripting", "alarms"],
   "host_permissions": [
     "*://cses.fi/*",
     "https://wandbox.org/*"
